@@ -2,6 +2,7 @@ Components this project will require:
   1.  Airmon-ng, or some kind of other wifi scanning utility. Preferably with API bindings.
     - Or it seems I can use ioctl. Read the link below...
     - http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
+    - https://www.aircrack-ng.org/doku.php?id=airodump-ng
     
   2.  GPS module. Necessary to get the current position.
     - The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 

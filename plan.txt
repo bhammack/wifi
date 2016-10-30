@@ -1,0 +1,7 @@
+Components this project will require:
+  1.  Airmon-ng, or some kind of other wifi scanning utility. Preferably with API bindings.
+  2.  GPS module. Necessary to get the current position.
+  3.  SQL instance. Will likely use sqlite3, cause it's just fantastic.
+  4.  Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
+  5.  Calculator program. Something to translate the data points we collect to estimated coordaintes.
+  

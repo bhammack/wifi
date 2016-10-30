@@ -1,25 +1,26 @@
 Components this project will require:
   1.  Airmon-ng, or some kind of other wifi scanning utility. Preferably with API bindings.
-    - Or it seems I can use ioctl. Read the link below...
-    - http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
-    - https://www.aircrack-ng.org/doku.php?id=airodump-ng
-    * http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
+      - Or it seems I can use ioctl. Read the link below...
+      - http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
+      - https://www.aircrack-ng.org/doku.php?id=airodump-ng
+      * http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
+      * https://github.com/thodg/wifi/blob/master/libwifi/scan.c
     
   2.  GPS module. Necessary to get the current position.
-    - The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 
-    - https://en.wikipedia.org/wiki/Gpsd
+      - The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 
+      - https://en.wikipedia.org/wiki/Gpsd
     
   3.  SQL instance. Will likely use sqlite3, cause it's just fantastic.
-    - https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
+      - https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
   
   4.  Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
-    - I've done this before with the bustracker program (or was it Leaflet.js?). Either way...
-    - https://developers.google.com/maps/
-    - http://leafletjs.com/
+      - I've done this before with the bustracker program (or was it Leaflet.js?). Either way...
+      - https://developers.google.com/maps/
+      - http://leafletjs.com/
   
   5.  Calculator program. Something to translate the data points we collect to estimated coordaintes.
-    - Read this:
-    - http://www.javawa.nl/coordcalc_en.html
+      - Read this:
+      - http://www.javawa.nl/coordcalc_en.html
 
 Findings from initial research:
   1.  There aren't any bindings for airodump-ng (the classic 80211 packet sniffer).

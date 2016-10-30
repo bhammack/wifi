@@ -18,4 +18,10 @@ Components this project will require:
   5.  Calculator program. Something to translate the data points we collect to estimated coordaintes.
     - Read this:
     - http://www.javawa.nl/coordcalc_en.html
-    
+
+Findings from initial research:
+  1.  There aren't any bindings for airodump-ng (the classic 80211 packet sniffer).
+        However, the application itself is written in C. This could be useful.
+      The IOctl link only works on an already-connected interface. Not what I'm looking for.
+      Wifite is a pythonic automater for aircrack-ng. It wraps the airodump process. 
+        I'd rather not just "wrap" airodump. Too easy to do.

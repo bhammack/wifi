@@ -3,6 +3,7 @@ Components this project will require:
     - Or it seems I can use ioctl. Read the link below...
     - http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
     - https://www.aircrack-ng.org/doku.php?id=airodump-ng
+    * http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
     
   2.  GPS module. Necessary to get the current position.
     - The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 

@@ -7,65 +7,62 @@
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
 //#include <net/if.h>             // ifreq struct;
-//#include <iwlib.h>              // wireless-tools. if not found sudo apt-get install iwlib-dev?
+#include <iwlib.h>              // Additional wireless tools?
 
-// struct to hold wireless data
+
+
+
 /*
-struct datapoint {
-    char mac[18]; // 12 for chars, 5 for colons. No need to have 18.
-    char ssid[33]; // why 33?
-    int bitrate; // what are these?
-    int level;
-};
+http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
 https://android.googlesource.com/platform/external/kernel-headers/+/donut-release/original/linux/wireless.h
+http://wireless-tools.sourcearchive.com/documentation/30~pre9-3ubuntu6/iwlib_8h_source.html
 */
 
 
 int scan() {
+    /*
+        SIOCSIWSCAN starts the scan
+        SIOCGIWSCAN gets the results of the scan
+    */
+    unsigned char buffer[256];
+    struct iwreq req;
     
-    struct iwreq req; // fuck me I had it all along...
     memset(&req, 0, sizeof(req)); // not sure why this is required...
-    strcpy(req.ifr_name, "mlan0");
-
-    //struct ifreq freq; // fuck me double.
     //strcpy(req.ifr_name, "mlan0");
-    //char buffer[1024];
-    //memset(buffer, 0, 1024);
+    
+    // Params are inputs, data are outputs?
+    req.u.param.flags = IW_SCAN_DEFAULT;
+    req.u.param.value = 0;
+    
     
     req.u.data.pointer = NULL;
     req.u.data.flags = 0;
     req.u.data.length = 0;
-    //strcpy(freq.ifr_name, "mlan0");
     
-    //memset(&freq, 0, sizeof(freq));
-
-    // IOctl uses sockets. This is because IOctl is a system call for IO devices.
+    // ioctl() uses sockets, since they are system calls to the kernel.
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    /*
-    SIOCGIWSTATS -> iw_statistics object.
-    SIOCGIWESSID -> ssid as char*.
-    SIOCS80211SCAN
-    */
-    //char buffer[32];
-    //memset(buffer, 0, 32); // set the buffer to just 0's.
-    
-    //wreq.u.essid.pointer = buffer;
-    //wreq.u.essid.length = 32;
-    
-    //this will gather the SSID of the connected network
-    //if(ioctl(sockfd, SIOCGIWESSID, &wreq) == -1){
-    
-    if(ioctl(sockfd, SIOCSIWSCAN, &req) == -1){
-        perror("scan()");
+    if (iw_set_ext(sockfd, "mlan0", SIOCSIWSCAN, &req) < 0) {
+        perror("iw_set_ext()");
+        if (errno == EPERM)
+            fprintf(stderr, "Launch the application using sudo.\n");
+        else
+            fprintf(stderr, "Interface does not support scanning!\n");
         return(1);
-    } else {
-        //char response[wreq.u.essid.length];
-        //memcpy(response, wreq.u.essid.pointer, wreq.u.essid.length);
-        //fprintf(stdout, "%s", response);
-        fprintf(stdout, "%s", buffer);
     }
+    // Successful!
+    
+    //req.u.data.pointer = (char*) buffer;
+    //req.u.data.flags = 0; // why assign this?
+    //req.u.data.length = sizeof(buffer); // why? this doesn't make sense!
+    //fprintf(stdout, "%s", buffer);
     
     
+    
+    
+    
+    // Apparently we need an infinite loop here. Good idea for a thread.
+    //while(1) {}
+
 }
 
 

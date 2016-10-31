@@ -2,12 +2,12 @@
 //#include <sys/types.h>
 #include <sys/socket.h>         // UNIX sockets.
 #include <linux/wireless.h>     // Linu wireless tools.
-#include <sys/ioctl.h>          // ioctl();
+//#include <sys/ioctl.h>          // ioctl(); -- not needed. using iwlib, which wraps ioctl calls.
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
 //#include <net/if.h>             // ifreq struct;
-#include <iwlib.h>              // Additional wireless tools?
+#include <iwlib.h>              // Wireless Extension.
 
 
 
@@ -16,6 +16,12 @@
 http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
 https://android.googlesource.com/platform/external/kernel-headers/+/donut-release/original/linux/wireless.h
 http://wireless-tools.sourcearchive.com/documentation/30~pre9-3ubuntu6/iwlib_8h_source.html
+
+I can either wrap my own blunt of scan, or use a built in function in the iwlib, iw_scan(), that scans for me.
+
+ioctl() is a protocol for using UNIX sockets as ways to system-call the kernel.
+In this case specifically, it is to call the kernel to request data from IO devices.
+
 */
 
 
@@ -26,21 +32,18 @@ int scan() {
     */
     unsigned char buffer[256];
     struct iwreq req;
+    struct timeval tv;
+    int timeout = 5000000; // 5 seconds.
     
-    memset(&req, 0, sizeof(req)); // not sure why this is required...
-    //strcpy(req.ifr_name, "mlan0");
+     /* Init timeout value -> 250ms*/
+    tv.tv_sec = 0;
+    tv.tv_usec = 250000;
     
     // Params are inputs, data are outputs?
     req.u.param.flags = IW_SCAN_DEFAULT;
     req.u.param.value = 0;
     
-    
-    req.u.data.pointer = NULL;
-    req.u.data.flags = 0;
-    req.u.data.length = 0;
-    
-    // ioctl() uses sockets, since they are system calls to the kernel.
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int sockfd = iw_sockets_open();
     if (iw_set_ext(sockfd, "mlan0", SIOCSIWSCAN, &req) < 0) {
         perror("iw_set_ext()");
         if (errno == EPERM)
@@ -49,19 +52,71 @@ int scan() {
             fprintf(stderr, "Interface does not support scanning!\n");
         return(1);
     }
-    // Successful!
-    
-    //req.u.data.pointer = (char*) buffer;
-    //req.u.data.flags = 0; // why assign this?
-    //req.u.data.length = sizeof(buffer); // why? this doesn't make sense!
-    //fprintf(stdout, "%s", buffer);
-    
-    
+    timeout -= tv.tv_usec;
+    // Scan started...
     
     
     
     // Apparently we need an infinite loop here. Good idea for a thread.
-    //while(1) {}
+    while(1) {
+        fd_set rfds;
+        int last_fd;
+        int ret;
+        
+        FD_ZERO(&rfds);
+        last_fd = -1;
+        ret = sleep(3);
+        
+        if (ret > 0) {
+            
+            
+            if (errno == EAGAIN || errno == EINTR) {
+                perror("what?");
+                continue;
+            } else {
+                perror("unknown");
+                return(1);
+            }
+            
+            
+        } else if (ret == 0) {
+            // TODO: explain this.
+            req.u.data.pointer = (char*) buffer;
+            req.u.data.flags = 0;
+            req.u.data.length = sizeof(buffer);
+            if (iw_get_ext(sockfd, "mlan0", SIOCGIWSCAN, &req) < 0) {
+                perror("iw_get_ext()");
+                return(1);
+            }
+            break;
+        }
+    }
+    
+    // Got scan results. Set up a parsing stream to read them out, I guess.
+    
+    if (req.u.data.length) { // I guess this executes if it's not zero. Can't imagine length == 1.
+        struct iw_event iwe;
+        struct stream_descr stream;
+        int ret;
+        iw_init_event_stream(&stream, (char*)buffer, req.u.data.length);
+        do {
+            // Extract events from the event stream and do something with them.
+            ret = iw_extract_event_stream(&stream, &iwe, WE_VERSION);
+            if (ret > 0) {
+                // Stream isn't done. Parse it.
+                switch(iwe.cmd) {
+                    case SIOCGIWESSID:
+                        print_scanning_token(&iwe);
+                        break;
+                }
+            }
+            
+            
+        } while (ret > 0);
+    }
+    
+    
+    
 
 }
 

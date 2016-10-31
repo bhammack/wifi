@@ -1,3 +1,2 @@
 all:
-	#g++ test.cpp -o test
-	gcc test.c -o test.o
+	gcc test.c -o test.o -std=c99 -liw

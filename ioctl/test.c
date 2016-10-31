@@ -1,17 +1,74 @@
 // Includes
+//#include <sys/types.h>
 #include <sys/socket.h>         // UNIX sockets.
-#include <linux/wireless.h>     // access to wireless interfaces
-#include <sys/ioctl.h>          // ioctl stuff
+#include <linux/wireless.h>     // Linu wireless tools.
+#include <sys/ioctl.h>          // ioctl();
 #include <stdio.h>              // fprintf(), stdout, perror();
-#include <stdlib.h>             // strcpy(), malloc();
+#include <stdlib.h>             // malloc();
+#include <string.h>             // strcpy();
+//#include <net/if.h>             // ifreq struct;
+//#include <iwlib.h>              // wireless-tools. if not found sudo apt-get install iwlib-dev?
 
 // struct to hold wireless data
+/*
 struct datapoint {
     char mac[18]; // 12 for chars, 5 for colons. No need to have 18.
     char ssid[33]; // why 33?
     int bitrate; // what are these?
     int level;
 };
+https://android.googlesource.com/platform/external/kernel-headers/+/donut-release/original/linux/wireless.h
+*/
+
+
+int scan() {
+    
+    struct iwreq req; // fuck me I had it all along...
+    memset(&req, 0, sizeof(req)); // not sure why this is required...
+    strcpy(req.ifr_name, "mlan0");
+
+    //struct ifreq freq; // fuck me double.
+    //strcpy(req.ifr_name, "mlan0");
+    //char buffer[1024];
+    //memset(buffer, 0, 1024);
+    
+    req.u.data.pointer = NULL;
+    req.u.data.flags = 0;
+    req.u.data.length = 0;
+    //strcpy(freq.ifr_name, "mlan0");
+    
+    //memset(&freq, 0, sizeof(freq));
+
+    // IOctl uses sockets. This is because IOctl is a system call for IO devices.
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    /*
+    SIOCGIWSTATS -> iw_statistics object.
+    SIOCGIWESSID -> ssid as char*.
+    SIOCS80211SCAN
+    */
+    //char buffer[32];
+    //memset(buffer, 0, 32); // set the buffer to just 0's.
+    
+    //wreq.u.essid.pointer = buffer;
+    //wreq.u.essid.length = 32;
+    
+    //this will gather the SSID of the connected network
+    //if(ioctl(sockfd, SIOCGIWESSID, &wreq) == -1){
+    
+    if(ioctl(sockfd, SIOCSIWSCAN, &req) == -1){
+        perror("scan()");
+        return(1);
+    } else {
+        //char response[wreq.u.essid.length];
+        //memcpy(response, wreq.u.essid.pointer, wreq.u.essid.length);
+        //fprintf(stdout, "%s", response);
+        fprintf(stdout, "%s", buffer);
+    }
+    
+    
+}
+
+
 
 /*
 int getSignalInfo(signalInfo *sigInfo, char *iwname){
@@ -89,5 +146,6 @@ int getSignalInfo(signalInfo *sigInfo, char *iwname){
 
 
 int main(int argc, char** argv) {
-    fprintf(stdout, "Hello world!");
+    fprintf(stdout, "Hello world!\n");
+    scan();
 }

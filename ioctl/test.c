@@ -29,33 +29,23 @@ int scan() {
         SIOCSIWSCAN starts the scan
         SIOCGIWSCAN gets the results of the scan
     */
-    
-    
-    unsigned char buffer[256];
+    unsigned char buffer[IW_SCAN_MAX_DATA*10]; // 4096 bytes
     struct iwreq req;
     struct timeval tv;
     int timeout = 5000000; // 5 seconds.
     tv.tv_sec = 0;
     tv.tv_usec = 250000;
     
-    // Params are inputs, data are outputs?
-    req.u.param.flags = IW_SCAN_DEFAULT;
-    req.u.param.value = 0;
+    // Params are inputs, data are outputs? These params dont seem to be crucial...
+    //req.u.param.flags = IW_SCAN_DEFAULT;
+    //req.u.param.value = 0;
     
-    // What the hell man.
+    // Set the initial data pointers to null. Might not need to do this.
     req.u.data.pointer = NULL;
     req.u.data.flags = 0;
     req.u.data.length = 0;
     
-    // http://man7.org/linux/man-pages/man3/errno.3.html
-    /*
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (ioctl(sockfd, SIOCSIWSCAN, &req) < 0) {
-        perror("ioctl");
-    }
-    */
-    
-    
+    // Make an ioctl request to initiate scanning.
     int sockfd = iw_sockets_open();
     if (iw_set_ext(sockfd, "mlan0", SIOCSIWSCAN, &req) < 0) {
         perror("iw_set_ext()");
@@ -63,26 +53,24 @@ int scan() {
             fprintf(stderr, "Launch the application using sudo.\n");
         return(1);
     }
-    
-    
-    
+    fprintf(stdout, "Scan initiated...\n");
     timeout -= tv.tv_usec;
-    // Scan started...
+
+    // TODO: refine this algo.
+    // dynamically allocate the buffer size.
+    // dont use sleep(3), use select.
     
-    
-    // Apparently we need an infinite loop here. Good idea for a thread.
+    // Keep making ioctl requests for the scan results until they're returned.
     while(1) {
         fd_set rfds;
         int last_fd;
         int ret;
         
-        FD_ZERO(&rfds);
-        last_fd = -1;
+        FD_ZERO(&rfds); // ?
+        last_fd = -1; // ?
         ret = sleep(3);
         
         if (ret > 0) {
-            
-            
             if (errno == EAGAIN || errno == EINTR) {
                 perror("what?");
                 continue;
@@ -90,44 +78,48 @@ int scan() {
                 perror("unknown");
                 return(1);
             }
-            
-            
-        } else if (ret == 0) {
+        }
+        
+        if (ret == 0) {
             // TODO: explain this.
             req.u.data.pointer = (char*) buffer;
             req.u.data.flags = 0;
             req.u.data.length = sizeof(buffer);
             if (iw_get_ext(sockfd, "mlan0", SIOCGIWSCAN, &req) < 0) {
-                perror("iw_get_ext()");
-                return(1);
+                if (errno == E2BIG) {
+                    // buffer was too small; resizing...
+                    // TODO: this shouldn't happen.
+                    fprintf(stderr, "buffer too small...\n");
+                    exit(1);
+                }
+                if (errno == EAGAIN) { // resource in use. try again.
+                    fprintf(stderr, "resource in use...\n");
+                    continue;
+                }
+                else {
+                    perror("iw_get_ext()");
+                    return(1);
+                }
             }
+            // Got the results. Break from the infinite loop.
             break;
         }
     }
     
+    fprintf(stdout, "Scan completed!\n");
     // Got scan results. Set up a parsing stream to read them out, I guess.
-    
     if (req.u.data.length) { // I guess this executes if it's not zero. Can't imagine length == 1.
         struct iw_event iwe;
         struct stream_descr stream;
-        int ret;
+        int stream_valid; // Either 1 (if the stream isn't done) or 0 (stream complete).
         iw_init_event_stream(&stream, (char*)buffer, req.u.data.length);
         do {
             // Extract events from the event stream and do something with them.
-            ret = iw_extract_event_stream(&stream, &iwe, WE_VERSION);
-            if (ret > 0) {
+            stream_valid = iw_extract_event_stream(&stream, &iwe, WE_VERSION);
+            if (stream_valid > 0) {
                 // Stream isn't done. Parse the event.
-                fprintf(stdout, "event!\n");
-                
-                
-                
-                
-                
-                
             }
-            
-            
-        } while (ret > 0);
+        } while (stream_valid > 0);
     }
 }
 
@@ -135,32 +127,6 @@ int scan() {
 
 
 int main(int argc, char** argv) {
-    fprintf(stdout, "Hello world!\n");
-    //scan();
-    
-    wireless_scan_head head;
-    wireless_scan* result;
-    iwrange range;
-    int socket;
-    
-    socket = iw_sockets_open();
-    // Get some metadata to use for scanning
-    if (iw_get_range_info(socket, "mlan0", &range) < 0) {
-        printf("Error during iw_get_range_info. Aborting.\n");
-        exit(2);
-    }
-
-    // Perform the scan
-    if (iw_scan(socket, "mlan0", range.we_version_compiled, &head) < 0) {
-        printf("Error during iw_scan. Aborting.\n");
-        exit(2);
-    }
-
-    // Traverse the results
-    result = head.result;
-    while (NULL != result) {
-        printf("%s\n", result->b.essid);
-        result = result->next;
-    }
-    
+    //fprintf(stdout, "Hello world!\n");
+    scan();
 }

@@ -8,10 +8,14 @@
 #include <iwlib.h>              // Wireless Extension.
 #include <getopt.h>             // argument parsing
 
+int scan(char* iface);
+void handle(struct iw_event* event);
 
 /*
 http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
 http://www.mit.edu/afs.new/sipb/project/merakidev/src/openwrt-meraki/openwrt/build_mips/wireless_tools.28/iwlib.h
+http://lxr.free-electrons.com/source/include/uapi/linux/wireless.h#L895
+https://heim.ifi.uio.no/naeemk/madwifi/structiw__event.html
 
 I can either wrap my own blunt of scan, or use a built in function in the iwlib, iw_scan(), that scans for me.
 
@@ -20,13 +24,55 @@ In this case specifically, it is to call the kernel to request data from IO devi
 
 */
 
+// http://www.mit.edu/afs.new/sipb/project/merakidev/src/openwrt-meraki/openwrt/build_mips/wireless_tools.28/iwlist.c
+
+
+
+
+void print_hex(char* array, int len) {
+    for (int i = 0; i < len; i++) {
+        printf("%02x", array[i]);
+        if (i != len-1)
+            printf(":");
+    }
+    printf("%s\n", array);
+}
+
+
+
+void handle(struct iw_event* event) {
+    // Here's all the codes:
+    //http://lxr.free-electrons.com/source/include/linux/wireless.h?v=2.6.31#L231
+    int cmd = event->cmd;
+    if (cmd == SIOCGIWESSID) {
+        if (event->u.essid.length == 1) return;
+        char essid[IW_ESSID_MAX_SIZE+1];
+	    if((event->u.essid.pointer) && (event->u.essid.length))
+	        memcpy(essid, event->u.essid.pointer, event->u.essid.length);
+	    essid[event->u.essid.length] = '\0';
+	    printf("%s", essid);
+	    printf(" - ");
+	    print_hex(event->u.ap_addr.sa_data, 14);
+    }
+    
+    if (cmd == SIOCGIWAP) {
+        
+        
+        
+        
+        
+    }
+    
+    
+    
+}
 
 int scan(char* iface) {
     /*
         SIOCSIWSCAN starts the scan
         SIOCGIWSCAN gets the results of the scan
     */
-    unsigned char buffer[IW_SCAN_MAX_DATA*10]; // 4096*10 bytes
+    unsigned char buffer[IW_SCAN_MAX_DATA*15]; // 4096*12 bytes
     struct iwreq req;
     
     // Params are inputs, data are outputs? These params dont seem to be crucial...
@@ -94,14 +140,13 @@ int scan(char* iface) {
     int count = 0;
     iw_init_event_stream(&stream, (char*)buffer, req.u.data.length);
     while(iw_extract_event_stream(&stream, &iwe, WE_VERSION)) {
-        // iwe is our temporary variable. Process the event.
+        handle(&iwe);
         count++;
     }
     fprintf(stdout, "%d events in stream\n", count);
-    
-    
     iw_sockets_close(sockfd);
 }
+
 
 
 

@@ -16,60 +16,50 @@ int scan(char* iface);
 void handle(struct iw_event* event, struct iw_range* range, int has_range);
 
 /*
-http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
-http://www.mit.edu/afs.new/sipb/project/merakidev/src/openwrt-meraki/openwrt/build_mips/wireless_tools.28/iwlib.h
-http://lxr.free-electrons.com/source/include/uapi/linux/wireless.h#L895
+// Graphical view of iwevent structure. Handy!
 https://heim.ifi.uio.no/naeemk/madwifi/structiw__event.html
 
+// <iwlib.h> source -- linux wireless tools, version 29. (using 30).
+https://github.com/HewlettPackard/wireless-tools/blob/master/wireless_tools/iwlib.c
 
-COPY THIS -----
-https://github.com/cobyism/edimax-br-6528n/blob/master/AP/wireless_tools.25/iwlist.c
----------------
 
-I can either wrap my own blunt of scan, or use a built in function in the iwlib, iw_scan(), that scans for me.
+
+
+
+
+
+// Measuring signal strength:
+https://support.metageek.com/hc/en-us/articles/201955754-Understanding-WiFi-Signal-Strength
+
 
 ioctl() is a protocol for using UNIX sockets as ways to system-call the kernel.
 In this case specifically, it is to call the kernel to request data from IO devices.
+*/
+
+int ap_num; // global var, for now.
+
+
+/*
+    Data I need to collect:
+    1. ap mac address
+    2. ap essid
+    3. ap quality & signal & noise
+    4. geographic position
+    5. channel & frequency
+    6. encryption metadata
+    
+
 
 */
 
-
-void print_hex(char* array, int len) {
-    for (int i = 0; i < len; i++) {
-        printf("%02X", array[i]);
-        if (i != len-1)
-            printf(":");
-    }
-    printf("\n");
-}
-
-
-int ap_num;
 void handle(struct iw_event* event, struct iw_range* range, int has_range) {
-    // Here's all the codes:
-    //http://lxr.free-electrons.com/source/include/linux/wireless.h?v=2.6.31#L231
-    //int cmd = event->cmd;
-    /*
-    if (cmd == SIOCGIWESSID) {
-        if (event->u.essid.length == 1) return;
-        char essid[IW_ESSID_MAX_SIZE+1];
-	    if((event->u.essid.pointer) && (event->u.essid.length))
-	        memcpy(essid, event->u.essid.pointer, event->u.essid.length);
-	    essid[event->u.essid.length] = '\0';
-	    printf("%s", essid);
-	    printf(" - ");
-	    print_hex(event->u.ap_addr.sa_data, 14);
-    }
-    */
     char buffer[128];
-    
     switch(event->cmd) {
         case SIOCGIWAP:
             sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X",
                 event->u.ap_addr.sa_data[0], event->u.ap_addr.sa_data[1],
                 event->u.ap_addr.sa_data[2], event->u.ap_addr.sa_data[3],
-                event->u.ap_addr.sa_data[4], event->u.ap_addr.sa_data[5]
-            );
+                event->u.ap_addr.sa_data[4], event->u.ap_addr.sa_data[5]);
             printf("\n[==========[ Cell %02d ]==========]\n", ap_num);
             printf("Address: %s\n", buffer);
             ap_num++;
@@ -89,10 +79,16 @@ void handle(struct iw_event* event, struct iw_range* range, int has_range) {
                 // 2. Output whether freq is in MHz, GHz, etc.
             // View the source of iwlib.c for more.
             double freq = (double) event->u.freq.m;
+            int channel = -1;
+            
+            // Converting frequency to floating point value.
             for (int i = 0; i < event->u.freq.e; i++) { freq *= 10; }
             if (freq < KILO) {
-                sprintf(buffer, "Channel: %g", freq);
-            } else {
+                // Freq is actually a channel number and not a freq at all.
+                channel = (int)freq;
+                sprintf(buffer, "Channel: %d", channel);
+            }
+            else {
                 if (freq >= GIGA) {
                     sprintf(buffer, "Frequency: %g GHz", freq/GIGA);
                 } else {
@@ -109,6 +105,10 @@ void handle(struct iw_event* event, struct iw_range* range, int has_range) {
         case SIOCGIWMODE:
             printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
             break;
+
+        case SIOCGIWNAME:
+            printf("Protocol:%-1.16s\n", event->u.name);
+            break;
         */
         case SIOCGIWESSID: {
             if (event->u.essid.length == 1) return;
@@ -122,51 +122,82 @@ void handle(struct iw_event* event, struct iw_range* range, int has_range) {
     	        printf("Essid: off/any\n");
     	    }
         } break;
+        
+        case SIOCGIWENCODE: {
+            // Cut. There's more processing that can happen here.
+            unsigned char key[IW_ENCODING_TOKEN_MAX];
+            if (event->u.data.pointer)
+                memcpy(key, event->u.data.pointer, event->u.data.length);
+            else
+                event->u.data.flags |= IW_ENCODE_NOKEY;
+            printf("Encryption key: ");
+            if (event->u.data.flags & IW_ENCODE_DISABLED)
+                printf("none\n");
+            else
+                printf("on\n");
+        } break;
         /*
         case SIOCGIWRATE:
             iw_print_bitrate(buffer, event->u.bitrate.value);
             printf("                    Bit Rate:%s\n", buffer);
             break;
+        case SIOCGIWMODUL:
+            break;
         */
         case IWEVQUAL: {
         	event->u.qual.updated = 0x0; // Not that reliable, disabled.
+        	// It also seems that noise is not an output'd factor. Investigate...
+        	
         	//iw_print_stats(buffer, &event->u.qual, range, has_range);
         	if (has_range && (event->u.qual.level != 0)) {
         	    if (event->u.qual.level > range->max_qual.level) {
         	        // The statistics are in dBm.
-
-        	        
-        	        
-        	        
-        	        
+                    sprintf(buffer, "Quality: %d/%d Signal: %d dBm Noise: %d dBm%s",
+                        event->u.qual.qual, range->max_qual.qual, // qual per range
+                        event->u.qual.level - 0x100, event->u.qual.noise - 0x100, // sig & noise.
+                        // 0x100 is 256 decimal. Not sure why this subtraction occurs...
+                        (event->u.qual.updated & 0x7) ? " (updated)" : "");
         	    } else {
         	        // The statistics are relative levels.
-        	        
-        	        
+        	        sprintf(buffer, "Quality: %d/%d Signal: %d/%d dBm Noise: %d/%d%s",
+                        event->u.qual.qual, range->max_qual.qual, // qual per range
+                        event->u.qual.level, range->max_qual.level, // sig per range
+                        event->u.qual.noise, range->max_qual.noise, // noise per range
+                        (event->u.qual.updated & 0x7) ? " (updated)" : "");
         	    }
-        	    
-        	    
+        	} else {
+        	    // The range could not be read. Statistics are unknown.
+        	    sprintf(buffer, "Quality: %d Signal: %d dBm Noise: %d%s",
+                    event->u.qual.qual, event->u.qual.level,
+                    event->u.qual.noise,
+                    (event->u.qual.updated & 0x7) ? " (updated)" : "");
         	}
-        	
-        	
-        	
-        	
-        	
-        	
-        	
-        	
-        	
-        	
         	printf("%s\n", buffer);
         } break;
         
-        
-        
+        case IWEVGENIE: {
+            // Information elements. Only looking for ones that tell us about encryption mode.
+            //iw_print_gen_ie(event->u.data.pointer, event->u.data.length);
+            int offset = 0;
+            /*
+            while (offset <= (event->u.data.length -2)) {
+                switch((unsigned char*)event->u.data.pointer[offset]) {
+                    case 0xDD:
+                    case 0x30:
+                        //iw_print_ie_wpa(buffer + offset, buflen);
+                        break;
+                }
+                offset += (unsigned char*)event->u.data.pointer[offset+1]+2;
+            }
+            */
+        } break;
     }
     
     
     
 }
+
+
 
 int scan(char* iface) {
     /*
@@ -201,8 +232,9 @@ int scan(char* iface) {
     while(1) {
         sleep(3); // normal delay until device available.
         // TODO: remove sleep(); replace with polling?
+        // It doesn't seem to be the case that the more sleep time it has,
+        // the more results that are collected.
         int ret = 0;
-
             // TODO: explain this.
             // TODO: don't need to assign this in the loop.
             req.u.data.pointer = (char*) buffer;

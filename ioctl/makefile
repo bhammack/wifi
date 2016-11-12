@@ -1,2 +1,2 @@
 all:
-	gcc test.c -o test.o -std=c99 -liw
+	g++ test.cpp -o test.o -std=c++11 -liw -Wall

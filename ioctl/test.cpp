@@ -1,12 +1,9 @@
 // Includes
-#include <sys/socket.h>         // UNIX sockets.
+#include <iwlib.h>              // Wireless Extension.
 #include <linux/wireless.h>     // Linu wireless tools.
-//#include <sys/ioctl.h>          // ioctl(); -- not needed. using iwlib, which wraps ioctl calls.
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
-#include <iwlib.h>              // Wireless Extension.
-//#include <getopt.h>             // argument parsing
 
 #define KILO 1000
 #define MEGA 1000000
@@ -15,7 +12,7 @@
 int scan(char* iface);
 void handle_event(struct iw_event* event, struct iw_range* range, int has_range);
 
-void fail(char* reason) {
+void fail(char const * reason) {
     perror(reason);
     exit(1);
 }
@@ -182,7 +179,7 @@ void handle_event(struct iw_event* event, struct iw_range* range, int has_range)
         case IWEVGENIE: {
             // Information elements. Only looking for ones that tell us about encryption mode.
             //iw_print_gen_ie(event->u.data.pointer, event->u.data.length);
-            int offset = 0;
+            //int offset = 0;
             /*
             while (offset <= (event->u.data.length -2)) {
                 switch((unsigned char*)event->u.data.pointer[offset]) {
@@ -282,6 +279,7 @@ int scan(char* iface) {
     }
     fprintf(stdout, "%d events in stream\n", count);
     iw_sockets_close(sockfd);
+    return 0;
 }
 
 

@@ -6,16 +6,25 @@
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
 #include <iwlib.h>              // Wireless Extension.
-#include <getopt.h>             // argument parsing
+//#include <getopt.h>             // argument parsing
+
+#define KILO 1000
+#define MEGA 1000000
+#define GIGA 1000000000
 
 int scan(char* iface);
-void handle(struct iw_event* event);
+void handle(struct iw_event* event, struct iw_range* range, int has_range);
 
 /*
 http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
 http://www.mit.edu/afs.new/sipb/project/merakidev/src/openwrt-meraki/openwrt/build_mips/wireless_tools.28/iwlib.h
 http://lxr.free-electrons.com/source/include/uapi/linux/wireless.h#L895
 https://heim.ifi.uio.no/naeemk/madwifi/structiw__event.html
+
+
+COPY THIS -----
+https://github.com/cobyism/edimax-br-6528n/blob/master/AP/wireless_tools.25/iwlist.c
+---------------
 
 I can either wrap my own blunt of scan, or use a built in function in the iwlib, iw_scan(), that scans for me.
 
@@ -24,26 +33,23 @@ In this case specifically, it is to call the kernel to request data from IO devi
 
 */
 
-// http://www.mit.edu/afs.new/sipb/project/merakidev/src/openwrt-meraki/openwrt/build_mips/wireless_tools.28/iwlist.c
-
-
-
 
 void print_hex(char* array, int len) {
     for (int i = 0; i < len; i++) {
-        printf("%02x", array[i]);
+        printf("%02X", array[i]);
         if (i != len-1)
             printf(":");
     }
-    printf("%s\n", array);
+    printf("\n");
 }
 
 
-
-void handle(struct iw_event* event) {
+int ap_num;
+void handle(struct iw_event* event, struct iw_range* range, int has_range) {
     // Here's all the codes:
     //http://lxr.free-electrons.com/source/include/linux/wireless.h?v=2.6.31#L231
-    int cmd = event->cmd;
+    //int cmd = event->cmd;
+    /*
     if (cmd == SIOCGIWESSID) {
         if (event->u.essid.length == 1) return;
         char essid[IW_ESSID_MAX_SIZE+1];
@@ -54,10 +60,105 @@ void handle(struct iw_event* event) {
 	    printf(" - ");
 	    print_hex(event->u.ap_addr.sa_data, 14);
     }
+    */
+    char buffer[128];
     
-    if (cmd == SIOCGIWAP) {
+    switch(event->cmd) {
+        case SIOCGIWAP:
+            sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X",
+                event->u.ap_addr.sa_data[0], event->u.ap_addr.sa_data[1],
+                event->u.ap_addr.sa_data[2], event->u.ap_addr.sa_data[3],
+                event->u.ap_addr.sa_data[4], event->u.ap_addr.sa_data[5]
+            );
+            printf("\n[==========[ Cell %02d ]==========]\n", ap_num);
+            printf("Address: %s\n", buffer);
+            ap_num++;
+            break;
         
+        case SIOCGIWNWID:
+            if (event->u.nwid.disabled)
+                printf("NWID: off/any\n");
+            else
+                printf("NWID: %X\n", event->u.nwid.value);
+            break;
         
+        case SIOCGIWFREQ: {
+            // Either the frequency or the channel.
+            // TODO: There are some other operations I can include here to...
+                // 1. Convert freq to channel number.
+                // 2. Output whether freq is in MHz, GHz, etc.
+            // View the source of iwlib.c for more.
+            double freq = (double) event->u.freq.m;
+            for (int i = 0; i < event->u.freq.e; i++) { freq *= 10; }
+            if (freq < KILO) {
+                sprintf(buffer, "Channel: %g", freq);
+            } else {
+                if (freq >= GIGA) {
+                    sprintf(buffer, "Frequency: %g GHz", freq/GIGA);
+                } else {
+                    if (freq >= MEGA) {
+                        sprintf(buffer, "Frequency: %g MHz", freq/MEGA);
+                    } else {
+                        sprintf(buffer, "Frequency: %g KHz", freq/KILO);
+                    }
+                }
+            }
+            printf("%s\n", buffer);
+            } break;
+        /*
+        case SIOCGIWMODE:
+            printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
+            break;
+        */
+        case SIOCGIWESSID: {
+            if (event->u.essid.length == 1) return;
+            char essid[IW_ESSID_MAX_SIZE+1];
+    	    if((event->u.essid.pointer) && (event->u.essid.length))
+    	        memcpy(essid, event->u.essid.pointer, event->u.essid.length);
+    	    essid[event->u.essid.length] = '\0';
+    	    if (event->u.essid.flags) {
+    	        printf("Essid: %s\n", essid);
+    	    } else {
+    	        printf("Essid: off/any\n");
+    	    }
+        } break;
+        /*
+        case SIOCGIWRATE:
+            iw_print_bitrate(buffer, event->u.bitrate.value);
+            printf("                    Bit Rate:%s\n", buffer);
+            break;
+        */
+        case IWEVQUAL: {
+        	event->u.qual.updated = 0x0; // Not that reliable, disabled.
+        	//iw_print_stats(buffer, &event->u.qual, range, has_range);
+        	if (has_range && (event->u.qual.level != 0)) {
+        	    if (event->u.qual.level > range->max_qual.level) {
+        	        // The statistics are in dBm.
+
+        	        
+        	        
+        	        
+        	        
+        	    } else {
+        	        // The statistics are relative levels.
+        	        
+        	        
+        	    }
+        	    
+        	    
+        	}
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	printf("%s\n", buffer);
+        } break;
         
         
         
@@ -128,7 +229,7 @@ int scan(char* iface) {
     }
     
     fprintf(stdout, "Scan completed!\n");
-    fprintf(stdout, "Results: %d\n", req.u.data.length);
+    //fprintf(stdout, "Results: %d\n", req.u.data.length);
     if (req.u.data.length == 0) {
         fprintf(stderr, "Error: Scan returned no results?\n");
         return(2);
@@ -138,9 +239,13 @@ int scan(char* iface) {
     struct iw_event iwe;
     struct stream_descr stream;
     int count = 0;
+    
+    struct iw_range range;
+    
+    int has_range = (iw_get_range_info(sockfd, iface, &range) >= 0);
     iw_init_event_stream(&stream, (char*)buffer, req.u.data.length);
     while(iw_extract_event_stream(&stream, &iwe, WE_VERSION)) {
-        handle(&iwe);
+        handle(&iwe, &range, has_range);
         count++;
     }
     fprintf(stdout, "%d events in stream\n", count);
@@ -152,6 +257,7 @@ int scan(char* iface) {
 
 
 int main(int argc, char** argv) {
+    ap_num = 1;
     char iface[] = "mlan0";
     scan(iface);
 }

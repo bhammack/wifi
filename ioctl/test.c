@@ -1,7 +1,7 @@
 // Includes
 #include <sys/socket.h>         // UNIX sockets.
 #include <linux/wireless.h>     // Linu wireless tools.
-#include <sys/ioctl.h>          // ioctl(); -- not needed. using iwlib, which wraps ioctl calls.
+//#include <sys/ioctl.h>          // ioctl(); -- not needed. using iwlib, which wraps ioctl calls.
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
@@ -13,7 +13,13 @@
 #define GIGA 1000000000
 
 int scan(char* iface);
-void handle(struct iw_event* event, struct iw_range* range, int has_range);
+void handle_event(struct iw_event* event, struct iw_range* range, int has_range);
+
+void fail(char* reason) {
+    perror(reason);
+    exit(1);
+}
+
 
 /*
 // Graphical view of iwevent structure. Handy!
@@ -52,7 +58,7 @@ int ap_num; // global var, for now.
 
 */
 
-void handle(struct iw_event* event, struct iw_range* range, int has_range) {
+void handle_event(struct iw_event* event, struct iw_range* range, int has_range) {
     char buffer[128];
     switch(event->cmd) {
         case SIOCGIWAP:
@@ -205,79 +211,75 @@ int scan(char* iface) {
         SIOCGIWSCAN gets the results of the scan
     */
     unsigned char buffer[IW_SCAN_MAX_DATA*15]; // 4096*12 bytes
-    struct iwreq req;
+    struct iwreq request;
     
-    // Params are inputs, data are outputs? These params dont seem to be crucial...
-    //req.u.param.flags = IW_SCAN_DEFAULT;
-    //req.u.param.value = 0;
+    // Clear initial data pointers.
+    request.u.data.pointer = NULL;
+    request.u.data.flags = 0;
+    request.u.data.length = 0;
     
-    // Set the initial data pointers to null. Might not need to do this.
-    req.u.data.pointer = NULL;
-    req.u.data.flags = 0;
-    req.u.data.length = 0;
-    
-    // Make an ioctl request to initiate scanning.
+    // Request a socket to communicate with the kernel via ioctl().
     int sockfd = iw_sockets_open();
-    if (iw_set_ext(sockfd, iface, SIOCSIWSCAN, &req) < 0) {
-        perror("iw_set_ext()");
-        if (errno == EPERM)
-            fprintf(stderr, "Launch the application using sudo.\n");
-        return(1);
+    
+    // Send the initiate scan call to the new socket.
+    if (iw_set_ext(sockfd, iface, SIOCSIWSCAN, &request) < 0) {
+        fail("iw_set_ext()");
+        // If this throws "Operation not permitted", run as sudo or su.
     }
+    
+    
     fprintf(stdout, "Scan initiated...\n");
 
     // TODO: refine this algo.
     // dynamically allocate the buffer size.
     // Keep making ioctl requests for the scan results until they're returned.
-    while(1) {
+    
+    
+    // Enter the while loop that attempts to collect scanning results.
+    request.u.data.pointer = (char*) buffer;
+    request.u.data.flags = 0;
+    request.u.data.length = sizeof(buffer);
+    int scanning = 1;
+    while(scanning) {
         sleep(3); // normal delay until device available.
         // TODO: remove sleep(); replace with polling?
         // It doesn't seem to be the case that the more sleep time it has,
         // the more results that are collected.
-        int ret = 0;
-            // TODO: explain this.
-            // TODO: don't need to assign this in the loop.
-            req.u.data.pointer = (char*) buffer;
-            req.u.data.flags = 0;
-            req.u.data.length = sizeof(buffer);
-            if (iw_get_ext(sockfd, iface, SIOCGIWSCAN, &req) < 0) {
-                if (errno == E2BIG) {
-                    // buffer was too small; resizing...
-                    // TODO: this shouldn't happen.
-                    fprintf(stderr, "buffer too small...\n");
-                    exit(1);
-                }
-                if (errno == EAGAIN) { // resource in use. try again.
-                    fprintf(stderr, "resource in use...\n");
-                    continue;
-                }
-                else {
-                    perror("iw_get_ext()");
-                    exit(1);
-                }
+        if (iw_get_ext(sockfd, iface, SIOCGIWSCAN, &request) < 0) {
+            if (errno == EAGAIN) {
+                fprintf(stderr, "resource in use...\n");
+                continue;
+            } else if (errno == E2BIG) {
+                fprintf(stderr, "buffer too small!\n");
+                fail("iw_get_ext()");
+            } else {
+                fail("iw_get_ext()");
             }
-            // Got the results. Break from the infinite loop.
-            break;
+        }
+        // Got the results. Terminate the loop.
+        scanning = 0;
     }
     
-    fprintf(stdout, "Scan completed!\n");
-    //fprintf(stdout, "Results: %d\n", req.u.data.length);
+    /*
     if (req.u.data.length == 0) {
-        fprintf(stderr, "Error: Scan returned no results?\n");
-        return(2);
+        fprintf(stderr, "Error: Scan returned no results!\n");
+        fail("req.u.data.length == 0");
     }
+    */
     
-    // Got scan results. Set up a parsing stream to read them out, I guess.
+    // Scan results have been returned. Create an event stream to read.
     struct iw_event iwe;
     struct stream_descr stream;
     int count = 0;
     
+    // Determine the range at which the scan took place.
     struct iw_range range;
-    
     int has_range = (iw_get_range_info(sockfd, iface, &range) >= 0);
-    iw_init_event_stream(&stream, (char*)buffer, req.u.data.length);
-    while(iw_extract_event_stream(&stream, &iwe, WE_VERSION)) {
-        handle(&iwe, &range, has_range);
+    
+    // Create an event stream. Push each event to the event handler function.
+    iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
+    while(iw_extract_event_stream(&stream, &iwe, range.we_version_compiled)) {
+        handle_event(&iwe, &range, has_range);
         count++;
     }
     fprintf(stdout, "%d events in stream\n", count);

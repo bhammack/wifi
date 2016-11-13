@@ -6,6 +6,7 @@
 #include <string.h>             // strcpy();
 #include <string>               // std::string
 #include <iostream>             // std::cout
+#include <vector>               // std::vector
 
 #define KILO 1000
 //#define MEGA 1000000
@@ -80,12 +81,12 @@ class AccessPointBuilder {
         void add_quality(iw_event* event);
         void add_encrypted(iw_event* event);
         void add_genie(iw_event* event);
-        //
-        //
+        // can make
+        // two more
 };
 
 // Constructor
-AccessPointBuider::AccessPointBuilder() {
+AccessPointBuilder::AccessPointBuilder() {
     _progress = 0x00;
     _has_range = -1; // range not yet set.
 }
@@ -178,11 +179,16 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 
 class WifiScanner {
     private:
-        AccessPointBuilder _builder;
+        AccessPointBuilder* _builder;
         void handle(iw_event* event);
     public:
         int scan(std::string& iface);
+        void set_builder(AccessPointBuilder* builder);
 };
+
+void WifiScanner::set_builder(AccessPointBuilder* builder) {
+    _builder = builder;
+}
 
 
 // Preform the scan.
@@ -246,7 +252,7 @@ int WifiScanner::scan(std::string& iface) {
     int has_range = (iw_get_range_info(sockfd, iface.c_str(), &range) >= 0);
     
     // Give the range information to the builder.
-    _builder.set_range(&range, has_range);
+    _builder->set_range(&range, has_range);
     
     // Create an event stream. Push each event to the event handler function.
     iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
@@ -264,7 +270,7 @@ void WifiScanner::handle(iw_event* event) {
     // [SIOC][G][IW][element]
     switch(event->cmd) {
         case SIOCGIWAP:
-            _builder.add_mac(event);
+            _builder->add_mac(event);
             break;
             
         case SIOCGIWNWID:
@@ -276,7 +282,7 @@ void WifiScanner::handle(iw_event* event) {
             break;
         
         case SIOCGIWFREQ:
-            _builder.add_freq(event);
+            _builder->add_freq(event);
             break;
             
         case SIOCGIWMODE:
@@ -295,11 +301,11 @@ void WifiScanner::handle(iw_event* event) {
             break;
             
         case SIOCGIWESSID:
-            _builder.add_essid(event);
+            _builder->add_essid(event);
             break;
             
         case SIOCGIWENCODE:
-            _builder.add_encrypted(event);
+            _builder->add_encrypted(event);
             break;
             
         case SIOCGIWRATE:
@@ -313,7 +319,7 @@ void WifiScanner::handle(iw_event* event) {
             break;
             
         case IWEVQUAL:
-            _builder.add_quality(event);
+            _builder->add_quality(event);
             break;
             
         case IWEVGENIE:
@@ -346,8 +352,17 @@ void WifiScanner::handle(iw_event* event) {
 
 int main(int argc, char** argv) {
     WifiScanner ws;
+    AccessPointBuilder ap_builder;
+    std::vector<AccessPoint> ap_list;
     
+    // AH damn, I'm going to have to externalize the scan,
+    // Or will I?
     
+    ws.set_builder(&ap_builder);
+    if (ap_builder.is_built()) {
+        ap_list.push_back(ap_builder.get_ap());
+        ap_builder.clear();
+    }
     
     
     

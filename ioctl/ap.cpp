@@ -77,7 +77,7 @@ class AccessPointBuilder {
         void add_freq(iw_event* event);
         void add_quality(iw_event* event);
         void add_encrypted(iw_event* event);
-        void add_genie(iw_event* event);
+        void add_info(iw_event* event);
         // can make
         // two more
         
@@ -170,7 +170,9 @@ void AccessPointBuilder::add_freq(iw_event* event) {
 
 // Add the signal, quality, and noise. Needs to have iw_range already set.
 void AccessPointBuilder::add_quality(iw_event* event) {
-    
+    // A scan at the hub indicated quality= and signal_level=,
+    // thus, no instances of relative values found yet.
+    // They also aren't broadcasting encrytpion information.
 }
 
 
@@ -189,8 +191,13 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 
 
 // Add an information element. We're looking for specific ones.
-void AccessPointBuilder::add_genie(iw_event* event) {
-    
+void AccessPointBuilder::add_info(iw_event* event) {
+    // Each IE is at least two bytes.
+    // 0xDD (221) & 0x30 (48) map to WPA1 and WPA2 information.
+    /*
+    Table 4-7. Information Elements
+    https://www.safaribooksonline.com/library/view/80211-wireless-networks/0596100523/ch04.html
+    */
     
 }
 

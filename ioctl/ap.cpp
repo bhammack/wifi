@@ -183,6 +183,7 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 void AccessPointBuilder::handle(iw_event* event) {
     // Read each event code like this:
     // [SIOC][G][IW][element]
+    printf("got event!\n");
     switch(event->cmd) {
         case SIOCGIWAP:
             add_mac(event);
@@ -258,33 +259,22 @@ void AccessPointBuilder::handle(iw_event* event) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
 class WifiScanner {
     private:
-        struct stream_descr _stream;
-        struct iw_range _range;
-        int _has_range;
-        struct iw_event _iwe;
+        struct stream_descr stream;
+        struct iw_range range;
+        int has_range;
+        struct iw_event iwe;
     public:
         int scan(std::string& iface);
-        int read_event(AccessPointBuilder* ap_builder);
+        iw_event* get_event();
 };
 
-
-int WifiScanner::read_event(AccessPointBuilder* ap_builder) {
-    int rv = iw_extract_event_stream(&_stream, &_iwe, _range.we_version_compiled);
-    if (rv != 0)
-        ap_builder->handle(&_iwe);
-    return rv;
+iw_event* WifiScanner::get_event() {
+    if (iw_extract_event_stream(&stream, &iwe, range.we_version_compiled))
+        return &iwe;
+    else
+        return NULL;
 }
 
 // Preform the scan.
@@ -337,29 +327,11 @@ int WifiScanner::scan(std::string& iface) {
         // Got the results. Terminate the loop.
         scanning = 0;
     }
+    has_range = (iw_get_range_info(sockfd, iface.c_str(), &range) >= 0);
     
-    // Scan results have been returned. Create an event stream to read.
-    //struct iw_event iwe;
-    //struct stream_descr stream;
-    //int count = 0;
-    // Determine the range at which the scan took place.
-    
-    
-    // MOVE THIS::
-    //struct iw_range range;
-    _has_range = (iw_get_range_info(sockfd, iface.c_str(), &_range) >= 0);
-    // Give the range information to the builder.
-    //_builder->set_range(&range, has_range);
-    
-    
-    // Create an event stream. Push each event to the event handler function.
-    iw_init_event_stream(&_stream, (char*)buffer, request.u.data.length);
-    /*while(iw_extract_event_stream(&stream, &iwe, range.we_version_compiled)) {
-        handle(&iwe);
-        count++;
-    }*/
+    // Scanning done. Results are present in the event stream.
+    iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
     iw_sockets_close(sockfd);
-    //return count;
     return 0;
 }
 
@@ -370,22 +342,20 @@ int WifiScanner::scan(std::string& iface) {
 
 
 int main(int argc, char** argv) {
-    WifiScanner ws;
+    std::string interface = "mlan0";
+    WifiScanner wifi;
     AccessPointBuilder ap_builder;
     std::vector<AccessPoint> ap_list;
     
-    // AH damn, I'm going to have to externalize the scan,
-    // Or will I?
-    
-    /*
-    ws.scan();
-    while(ws.add_events(&ap_builder)) {
+    wifi.scan(interface);
+    iw_event* iwe;
+    while ((iwe=wifi.get_event()) != NULL) {
+        ap_builder.handle(iwe);
         if (ap_builder.is_built()) {
             ap_list.push_back(ap_builder.get_ap());
             ap_builder.clear();
         }
     }
-    */
     
     return 0;
 }

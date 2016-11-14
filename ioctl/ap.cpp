@@ -277,12 +277,10 @@ iw_event* WifiScanner::get_event() {
         return NULL;
 }
 
-// Preform the scan.
+// Do the scan.
 int WifiScanner::scan(std::string& iface) {
     /*
-        SIOCSIWSCAN starts the scan
         SIOCGIWSCAN gets the results of the scan
-        TODO: make sure this is set to an ACTIVE SCAN!!!
         
         Scanning flags:
         http://w1.fi/hostapd/devel/wireless__copy_8h_source.html
@@ -300,7 +298,7 @@ int WifiScanner::scan(std::string& iface) {
     // Request a socket to communicate with the kernel via ioctl().
     int sockfd = iw_sockets_open();
     
-    // Send the initiate scan call to the new socket.
+    // Send the SIOCSIWSCAN to the new socket to initiate scan call.
     if (iw_set_ext(sockfd, iface.c_str(), SIOCSIWSCAN, &request) < 0) {
         fail("iw_set_ext()");
         // If this throws "Operation not permitted", run as sudo or su.
@@ -313,6 +311,7 @@ int WifiScanner::scan(std::string& iface) {
     int scanning = 1;
     while(scanning) {
         sleep(3);
+        // Keep sending SIOCGIWSCAN to the socket to request scan results.
         if (iw_get_ext(sockfd, iface.c_str(), SIOCGIWSCAN, &request) < 0) {
             if (errno == EAGAIN) {
                 fprintf(stderr, "resource in use...\n");

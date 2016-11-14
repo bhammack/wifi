@@ -1,6 +1,6 @@
 // Includes
 #include <iwlib.h>              // Wireless Extension.
-#include <linux/wireless.h>     // Linux wireless tools. Check here for structs & constants.
+#include <linux/wireless.h>     // Linux wireless tools. Structs & constants.
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
@@ -24,6 +24,7 @@ void fail(char const * reason) {
 
 
 /*
+<--------------------< USEFUL LINKS >----------------------------------------->
 // Graphical view of iwevent structure. Handy!
 https://heim.ifi.uio.no/naeemk/madwifi/structiw__event.html
 
@@ -36,18 +37,18 @@ http://w1.fi/hostapd/devel/wireless__copy_8h_source.html
 // Measuring signal strength:
 https://support.metageek.com/hc/en-us/articles/201955754-Understanding-WiFi-Signal-Strength
 
+<------------------------------< NOTES TO SELF >------------------------------>
 You can set to scan all by using flag IW_SCAN_ALL_ESSID,
     and choose scan type with flag IW_SCAN_TYPE_ACTIVE or IW_SCAN_TYPE_PASSIVE.
 
-
-
 ioctl() is a protocol for using UNIX sockets as ways to system-call the kernel.
-In this case specifically, it is to call the kernel to request data from IO devices.
+In this case, we're using it to call the kernel to request data from IO devices.
+    Namely, the wifi driver.
 */
 
 
 
-
+//-[AccessPoint]-------------------------------------------------------------//
 class AccessPoint {
     public:
         std::string essid;  // 32 chars
@@ -60,7 +61,7 @@ class AccessPoint {
 };
 
 
-
+//-[AccessPointBuilder]------------------------------------------------------//
 class AccessPointBuilder {
     private:
         // Data members.
@@ -94,18 +95,26 @@ AccessPointBuilder::AccessPointBuilder() {
     _progress = 0x00;
     _has_range = -1; // range not yet set.
 }
+
+
 // Get the result from the builder.
 AccessPoint AccessPointBuilder::get_ap() {
     return _ap;
 }
+
+
 // If the bitmask of all adds is the correct value, return 1.
 bool AccessPointBuilder::is_built() {
     return(_progress == 0xff);
 }
+
+
 // Clear the current AP from memory and start fresh.
 void AccessPointBuilder::clear() {
     _ap = AccessPoint();
 }
+
+
 // Set the scan's range data. Used in other adding functions.
 void AccessPointBuilder::set_range(iw_range* range, int has_range) {
     _range = range;
@@ -165,7 +174,6 @@ void AccessPointBuilder::add_quality(iw_event* event) {
 }
 
 
-
 // Determine if the ap's encrypted. The encryption type will come later.
 void AccessPointBuilder::add_encrypted(iw_event* event) {
     unsigned char key[IW_ENCODING_TOKEN_MAX];
@@ -180,42 +188,42 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 }
 
 
+// Add an information element. We're looking for specific ones.
+void AccessPointBuilder::add_genie(iw_event* event) {
+    
+    
+}
+
 void AccessPointBuilder::handle(iw_event* event) {
     // Read each event code like this:
-    // [SIOC][G][IW][element]
-    printf("got event!\n");
+    // [SIOC][G][IW][data_element]
     switch(event->cmd) {
         case SIOCGIWAP:
             add_mac(event);
             break;
-            
+        /*
         case SIOCGIWNWID:
             // network-id used in pre 802.11 systems. replaced by essid.
-            /*if (event->u.nwid.disabled)
+            // Doesn't ever seem to occur.
+            if (event->u.nwid.disabled)
                 printf("NWID: off/any\n");
             else
-                printf("NWID: %X\n", event->u.nwid.value);*/
+                printf("NWID: %X\n", event->u.nwid.value);
             break;
-        
+        */
         case SIOCGIWFREQ:
             add_freq(event);
             break;
-            
+        /*
         case SIOCGIWMODE:
             // Appears to always be 'Master'.
             //printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
             break;
-            
-        case SIOCGIWSENS:
-            // Does this call ever occur? It should be sensitivity in dBm?
-            printf("It does!\n");
-            break;
-
+        *//*
         case SIOCGIWNAME:
-            // Doesn't ever seem to occur. What is it?
             //printf("Protocol:%-1.16s\n", event->u.name);
             break;
-            
+        */
         case SIOCGIWESSID:
             add_essid(event);
             break;
@@ -229,18 +237,18 @@ void AccessPointBuilder::handle(iw_event* event) {
             /*iw_print_bitrate(buffer, event->u.bitrate.value);
             printf("                    Bit Rate:%s\n", buffer);*/
             break;
-            
+        /*
         case SIOCGIWMODUL:
             // Doesn't ever seem to occur.
             break;
-            
+        */
         case IWEVQUAL:
             add_quality(event);
             break;
             
         case IWEVGENIE:
             // Information events. TODO: research how to parse these!
-            //_builder.add_genie(event);
+            add_genie(event);
             break;
         
         case IWEVCUSTOM:
@@ -254,11 +262,12 @@ void AccessPointBuilder::handle(iw_event* event) {
             
         default:
             printf("(Unknown Wireless Token 0x%04X)\n",event->cmd);
+            fail("handle()");
             break;
     }
 }
 
-
+//-[WifiScanner]-------------------------------------------------------------//
 class WifiScanner {
     private:
         struct stream_descr stream;
@@ -277,34 +286,27 @@ iw_event* WifiScanner::get_event() {
         return NULL;
 }
 
-// Do the scan.
+// TODO: dynamic buffer size. Reallocate if the buffer was too small.
 int WifiScanner::scan(std::string& iface) {
     /*
-        SIOCGIWSCAN gets the results of the scan
-        
         Scanning flags:
         http://w1.fi/hostapd/devel/wireless__copy_8h_source.html
         line 00528
-        
     */
-    unsigned char buffer[IW_SCAN_MAX_DATA*15]; // 4096*12 bytes
+    unsigned char buffer[IW_SCAN_MAX_DATA*15]; // 4096*15 bytes
     struct iwreq request;
-    
     // Clear initial data pointers.
     request.u.data.pointer = NULL;
     request.u.data.flags = 0;
     request.u.data.length = 0;
-    
     // Request a socket to communicate with the kernel via ioctl().
     int sockfd = iw_sockets_open();
-    
     // Send the SIOCSIWSCAN to the new socket to initiate scan call.
     if (iw_set_ext(sockfd, iface.c_str(), SIOCSIWSCAN, &request) < 0) {
         fail("iw_set_ext()");
         // If this throws "Operation not permitted", run as sudo or su.
     }
     fprintf(stdout, "Scan initiated...\n");
-    
     request.u.data.pointer = (char*) buffer;
     request.u.data.flags = 0;
     request.u.data.length = sizeof(buffer);
@@ -327,7 +329,6 @@ int WifiScanner::scan(std::string& iface) {
         scanning = 0;
     }
     has_range = (iw_get_range_info(sockfd, iface.c_str(), &range) >= 0);
-    
     // Scanning done. Results are present in the event stream.
     iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
     iw_sockets_close(sockfd);
@@ -339,7 +340,7 @@ int WifiScanner::scan(std::string& iface) {
 
 
 
-
+//-[main entry point]--------------------------------------------------------//
 int main(int argc, char** argv) {
     std::string interface = "mlan0";
     WifiScanner wifi;
@@ -355,6 +356,5 @@ int main(int argc, char** argv) {
             ap_builder.clear();
         }
     }
-    
     return 0;
 }

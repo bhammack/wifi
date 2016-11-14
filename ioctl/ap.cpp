@@ -63,17 +63,13 @@ class AccessPoint {
 
 class AccessPointBuilder {
     private:
+        // Data members.
         AccessPoint _ap;
         struct iw_range* _range;
         int _has_range;
         char buffer[128];
         char _progress; // measures build progress
-    public:
-        AccessPointBuilder();
-        AccessPoint get_ap();
-        bool is_built();
-        void clear();
-        void set_range(iw_range* range, int has_range);
+        
         // Building functions. Each one sets a bit of _progress.
         void add_mac(iw_event* event);
         void add_essid(iw_event* event);
@@ -83,6 +79,14 @@ class AccessPointBuilder {
         void add_genie(iw_event* event);
         // can make
         // two more
+        
+    public:
+        AccessPointBuilder();
+        AccessPoint get_ap();
+        bool is_built();
+        void clear();
+        void handle(iw_event* event);
+        void set_range(iw_range* range, int has_range);
 };
 
 // Constructor
@@ -176,25 +180,112 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 }
 
 
+void AccessPointBuilder::handle(iw_event* event) {
+    // Read each event code like this:
+    // [SIOC][G][IW][element]
+    switch(event->cmd) {
+        case SIOCGIWAP:
+            add_mac(event);
+            break;
+            
+        case SIOCGIWNWID:
+            // network-id used in pre 802.11 systems. replaced by essid.
+            /*if (event->u.nwid.disabled)
+                printf("NWID: off/any\n");
+            else
+                printf("NWID: %X\n", event->u.nwid.value);*/
+            break;
+        
+        case SIOCGIWFREQ:
+            add_freq(event);
+            break;
+            
+        case SIOCGIWMODE:
+            // Appears to always be 'Master'.
+            //printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
+            break;
+            
+        case SIOCGIWSENS:
+            // Does this call ever occur? It should be sensitivity in dBm?
+            printf("It does!\n");
+            break;
 
-class WifiScanner {
-    private:
-        //AccessPointBuilder* _builder;
-        void handle(iw_event* event);
-        struct stream_descr _stream;
-        struct iw_range _range;
-        int _has_range;
-    public:
-        int scan(std::string& iface);
-        void set_builder(AccessPointBuilder* builder);
-};
-
-void WifiScanner::set_builder(AccessPointBuilder* builder) {
-    _builder = builder;
+        case SIOCGIWNAME:
+            // Doesn't ever seem to occur. What is it?
+            //printf("Protocol:%-1.16s\n", event->u.name);
+            break;
+            
+        case SIOCGIWESSID:
+            add_essid(event);
+            break;
+            
+        case SIOCGIWENCODE:
+            add_encrypted(event);
+            break;
+            
+        case SIOCGIWRATE:
+            // Always occurs. Should I capture this though?
+            /*iw_print_bitrate(buffer, event->u.bitrate.value);
+            printf("                    Bit Rate:%s\n", buffer);*/
+            break;
+            
+        case SIOCGIWMODUL:
+            // Doesn't ever seem to occur.
+            break;
+            
+        case IWEVQUAL:
+            add_quality(event);
+            break;
+            
+        case IWEVGENIE:
+            // Information events. TODO: research how to parse these!
+            //_builder.add_genie(event);
+            break;
+        
+        case IWEVCUSTOM:
+            // Extra data the router broadcasts back to us. Last beacon time.
+            /*char custom[IW_CUSTOM_MAX+1];
+	        if((event->u.data.pointer) && (event->u.data.length))
+        	    memcpy(custom, event->u.data.pointer, event->u.data.length);
+        	custom[event->u.data.length] = '\0';
+        	printf("Extra:%s\n", custom);*/
+            break;
+            
+        default:
+            printf("(Unknown Wireless Token 0x%04X)\n",event->cmd);
+            break;
+    }
 }
 
 
 
+
+
+
+
+
+
+
+
+
+class WifiScanner {
+    private:
+        struct stream_descr _stream;
+        struct iw_range _range;
+        int _has_range;
+        struct iw_event _iwe;
+    public:
+        int scan(std::string& iface);
+        int read_event(AccessPointBuilder* ap_builder);
+};
+
+
+int WifiScanner::read_event(AccessPointBuilder* ap_builder) {
+    int rv = iw_extract_event_stream(&_stream, &_iwe, _range.we_version_compiled);
+    if (rv != 0)
+        ap_builder->handle(&_iwe);
+    return rv;
+}
 
 // Preform the scan.
 int WifiScanner::scan(std::string& iface) {
@@ -256,7 +347,7 @@ int WifiScanner::scan(std::string& iface) {
     
     // MOVE THIS::
     //struct iw_range range;
-    //_has_range = (iw_get_range_info(sockfd, iface.c_str(), &_range) >= 0);
+    _has_range = (iw_get_range_info(sockfd, iface.c_str(), &_range) >= 0);
     // Give the range information to the builder.
     //_builder->set_range(&range, has_range);
     
@@ -271,86 +362,6 @@ int WifiScanner::scan(std::string& iface) {
     //return count;
     return 0;
 }
-
-// Switch on the event's code to send the event to the correct add function.
-void WifiScanner::handle(iw_event* event) {
-    // Read each event code like this:
-    // [SIOC][G][IW][element]
-    switch(event->cmd) {
-        case SIOCGIWAP:
-            _builder->add_mac(event);
-            break;
-            
-        case SIOCGIWNWID:
-            // network-id used in pre 802.11 systems. replaced by essid.
-            /*if (event->u.nwid.disabled)
-                printf("NWID: off/any\n");
-            else
-                printf("NWID: %X\n", event->u.nwid.value);*/
-            break;
-        
-        case SIOCGIWFREQ:
-            _builder->add_freq(event);
-            break;
-            
-        case SIOCGIWMODE:
-            // Appears to always be 'Master'.
-            //printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
-            break;
-            
-        case SIOCGIWSENS:
-            // Does this call ever occur? It should be sensitivity in dBm?
-            printf("It does!\n");
-            break;
-
-        case SIOCGIWNAME:
-            // Doesn't ever seem to occur. What is it?
-            //printf("Protocol:%-1.16s\n", event->u.name);
-            break;
-            
-        case SIOCGIWESSID:
-            _builder->add_essid(event);
-            break;
-            
-        case SIOCGIWENCODE:
-            _builder->add_encrypted(event);
-            break;
-            
-        case SIOCGIWRATE:
-            // Always occurs. Should I capture this though?
-            /*iw_print_bitrate(buffer, event->u.bitrate.value);
-            printf("                    Bit Rate:%s\n", buffer);*/
-            break;
-            
-        case SIOCGIWMODUL:
-            // Doesn't ever seem to occur.
-            break;
-            
-        case IWEVQUAL:
-            _builder->add_quality(event);
-            break;
-            
-        case IWEVGENIE:
-            // Information events. TODO: research how to parse these!
-            //_builder.add_genie(event);
-            break;
-        
-        case IWEVCUSTOM:
-            // Extra data the router broadcasts back to us. Last beacon time.
-            /*char custom[IW_CUSTOM_MAX+1];
-	        if((event->u.data.pointer) && (event->u.data.length))
-        	    memcpy(custom, event->u.data.pointer, event->u.data.length);
-        	custom[event->u.data.length] = '\0';
-        	printf("Extra:%s\n", custom);*/
-            break;
-            
-        default:
-            printf("(Unknown Wireless Token 0x%04X)\n",event->cmd);
-            break;
-    }
-}
-
-
 
 
 
@@ -367,13 +378,14 @@ int main(int argc, char** argv) {
     // Or will I?
     
     /*
-    ws.set_builder(&ap_builder);
-    if (ap_builder.is_built()) {
-        ap_list.push_back(ap_builder.get_ap());
-        ap_builder.clear();
+    ws.scan();
+    while(ws.add_events(&ap_builder)) {
+        if (ap_builder.is_built()) {
+            ap_list.push_back(ap_builder.get_ap());
+            ap_builder.clear();
+        }
     }
     */
-    
     
     return 0;
 }

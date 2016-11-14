@@ -179,8 +179,11 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 
 class WifiScanner {
     private:
-        AccessPointBuilder* _builder;
+        //AccessPointBuilder* _builder;
         void handle(iw_event* event);
+        struct stream_descr _stream;
+        struct iw_range _range;
+        int _has_range;
     public:
         int scan(std::string& iface);
         void set_builder(AccessPointBuilder* builder);
@@ -189,6 +192,8 @@ class WifiScanner {
 void WifiScanner::set_builder(AccessPointBuilder* builder) {
     _builder = builder;
 }
+
+
 
 
 // Preform the scan.
@@ -243,25 +248,28 @@ int WifiScanner::scan(std::string& iface) {
     }
     
     // Scan results have been returned. Create an event stream to read.
-    struct iw_event iwe;
-    struct stream_descr stream;
-    int count = 0;
-    
+    //struct iw_event iwe;
+    //struct stream_descr stream;
+    //int count = 0;
     // Determine the range at which the scan took place.
-    struct iw_range range;
-    int has_range = (iw_get_range_info(sockfd, iface.c_str(), &range) >= 0);
     
+    
+    // MOVE THIS::
+    //struct iw_range range;
+    //_has_range = (iw_get_range_info(sockfd, iface.c_str(), &_range) >= 0);
     // Give the range information to the builder.
-    _builder->set_range(&range, has_range);
+    //_builder->set_range(&range, has_range);
+    
     
     // Create an event stream. Push each event to the event handler function.
-    iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
-    while(iw_extract_event_stream(&stream, &iwe, range.we_version_compiled)) {
+    iw_init_event_stream(&_stream, (char*)buffer, request.u.data.length);
+    /*while(iw_extract_event_stream(&stream, &iwe, range.we_version_compiled)) {
         handle(&iwe);
         count++;
-    }
+    }*/
     iw_sockets_close(sockfd);
-    return count;
+    //return count;
+    return 0;
 }
 
 // Switch on the event's code to send the event to the correct add function.
@@ -358,12 +366,13 @@ int main(int argc, char** argv) {
     // AH damn, I'm going to have to externalize the scan,
     // Or will I?
     
+    /*
     ws.set_builder(&ap_builder);
     if (ap_builder.is_built()) {
         ap_list.push_back(ap_builder.get_ap());
         ap_builder.clear();
     }
-    
+    */
     
     
     return 0;

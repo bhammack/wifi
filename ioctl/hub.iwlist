@@ -2,7 +2,7 @@ mlan0     Scan completed :
           Cell 01 - Address: 58:35:D9:D5:C8:B9
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -34,7 +34,7 @@ mlan0     Scan completed :
           Cell 02 - Address: 58:35:D9:D5:C8:BE
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=44/70  Signal level=-66 dBm  
+                    Quality=44/70  Signal level=-66 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -66,7 +66,7 @@ mlan0     Scan completed :
           Cell 03 - Address: 58:35:D9:D5:C8:BC
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -92,7 +92,7 @@ mlan0     Scan completed :
           Cell 04 - Address: 58:35:D9:D5:C8:BA
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -123,7 +123,7 @@ mlan0     Scan completed :
           Cell 05 - Address: 58:35:D9:D5:C8:BF
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -154,7 +154,7 @@ mlan0     Scan completed :
           Cell 06 - Address: 58:35:D9:D5:C8:BB
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=46/70  Signal level=-64 dBm  
+                    Quality=46/70  Signal level=-64 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -190,7 +190,7 @@ mlan0     Scan completed :
           Cell 07 - Address: 58:35:D9:D5:C8:BD
                     Channel:52
                     Frequency:5.26 GHz (Channel 52)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -216,7 +216,7 @@ mlan0     Scan completed :
           Cell 08 - Address: 84:78:AC:98:C8:6C
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -242,7 +242,7 @@ mlan0     Scan completed :
           Cell 09 - Address: 84:78:AC:98:C8:6A
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -273,7 +273,7 @@ mlan0     Scan completed :
           Cell 10 - Address: 84:78:AC:98:C8:6F
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -304,7 +304,7 @@ mlan0     Scan completed :
           Cell 11 - Address: 84:78:AC:98:C8:6D
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -330,7 +330,7 @@ mlan0     Scan completed :
           Cell 12 - Address: 88:F0:77:F2:47:2F
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=46/70  Signal level=-64 dBm  
+                    Quality=46/70  Signal level=-64 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -361,7 +361,7 @@ mlan0     Scan completed :
           Cell 13 - Address: 88:F0:77:F2:47:2D
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=47/70  Signal level=-63 dBm  
+                    Quality=47/70  Signal level=-63 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -387,7 +387,7 @@ mlan0     Scan completed :
           Cell 14 - Address: 88:F0:77:F2:47:2C
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=46/70  Signal level=-64 dBm  
+                    Quality=46/70  Signal level=-64 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -413,7 +413,7 @@ mlan0     Scan completed :
           Cell 15 - Address: 88:F0:77:F2:47:2A
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=47/70  Signal level=-63 dBm  
+                    Quality=47/70  Signal level=-63 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -444,7 +444,7 @@ mlan0     Scan completed :
           Cell 16 - Address: 10:BD:18:3C:C3:1F
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -475,7 +475,7 @@ mlan0     Scan completed :
           Cell 17 - Address: 10:BD:18:3C:C3:1B
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -511,7 +511,7 @@ mlan0     Scan completed :
           Cell 18 - Address: 10:BD:18:3C:C3:1D
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -537,7 +537,7 @@ mlan0     Scan completed :
           Cell 19 - Address: 10:BD:18:3C:C3:19
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=43/70  Signal level=-67 dBm  
+                    Quality=43/70  Signal level=-67 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -569,7 +569,7 @@ mlan0     Scan completed :
           Cell 20 - Address: 10:BD:18:3C:C3:1E
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=44/70  Signal level=-66 dBm  
+                    Quality=44/70  Signal level=-66 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -601,7 +601,7 @@ mlan0     Scan completed :
           Cell 21 - Address: 10:BD:18:3C:C3:1C
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -627,7 +627,7 @@ mlan0     Scan completed :
           Cell 22 - Address: 10:BD:18:3C:C3:1A
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=46/70  Signal level=-64 dBm  
+                    Quality=46/70  Signal level=-64 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -658,7 +658,7 @@ mlan0     Scan completed :
           Cell 23 - Address: 26:24:0E:F3:1A:CF
                     Channel:1
                     Frequency:2.412 GHz (Channel 1)
-                    Quality=44/70  Signal level=-66 dBm  
+                    Quality=44/70  Signal level=-66 dBm
                     Encryption key:on
                     ESSID:"Monica's iPhone"
                     Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s
@@ -689,7 +689,7 @@ mlan0     Scan completed :
           Cell 24 - Address: 58:35:D9:D5:C8:B3
                     Channel:1
                     Frequency:2.412 GHz (Channel 1)
-                    Quality=48/70  Signal level=-62 dBm  
+                    Quality=48/70  Signal level=-62 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -716,7 +716,7 @@ mlan0     Scan completed :
           Cell 25 - Address: 58:97:1E:56:D4:53
                     Channel:1
                     Frequency:2.412 GHz (Channel 1)
-                    Quality=39/70  Signal level=-71 dBm  
+                    Quality=39/70  Signal level=-71 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -743,7 +743,7 @@ mlan0     Scan completed :
           Cell 26 - Address: 10:BD:18:3C:C3:13
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=38/70  Signal level=-72 dBm  
+                    Quality=38/70  Signal level=-72 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -770,7 +770,7 @@ mlan0     Scan completed :
           Cell 27 - Address: 84:78:AC:98:C8:63
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=30/70  Signal level=-80 dBm  
+                    Quality=30/70  Signal level=-80 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -797,7 +797,7 @@ mlan0     Scan completed :
           Cell 28 - Address: 90:72:40:1D:53:A0
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=43/70  Signal level=-67 dBm  
+                    Quality=43/70  Signal level=-67 dBm
                     Encryption key:on
                     ESSID:"LAV Wi-Fi Network"
                     Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s
@@ -830,7 +830,7 @@ mlan0     Scan completed :
           Cell 29 - Address: 10:BD:18:31:CE:60
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -862,7 +862,7 @@ mlan0     Scan completed :
           Cell 30 - Address: 10:BD:18:31:CE:62
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -889,7 +889,7 @@ mlan0     Scan completed :
           Cell 31 - Address: 10:BD:18:31:CE:63
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -916,7 +916,7 @@ mlan0     Scan completed :
           Cell 32 - Address: 10:BD:18:31:CE:65
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -948,7 +948,7 @@ mlan0     Scan completed :
           Cell 33 - Address: 84:78:AC:8C:57:EB
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=28/70  Signal level=-82 dBm  
+                    Quality=28/70  Signal level=-82 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -984,7 +984,7 @@ mlan0     Scan completed :
           Cell 34 - Address: 84:78:AC:8C:57:ED
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=29/70  Signal level=-81 dBm  
+                    Quality=29/70  Signal level=-81 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1011,7 +1011,7 @@ mlan0     Scan completed :
           Cell 35 - Address: 58:97:1E:56:D4:5C
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1037,7 +1037,7 @@ mlan0     Scan completed :
           Cell 36 - Address: 58:97:1E:56:D4:5A
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1068,7 +1068,7 @@ mlan0     Scan completed :
           Cell 37 - Address: 58:97:1E:56:D4:5F
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=38/70  Signal level=-72 dBm  
+                    Quality=38/70  Signal level=-72 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1099,7 +1099,7 @@ mlan0     Scan completed :
           Cell 38 - Address: 90:72:40:1D:53:A1
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=34/70  Signal level=-76 dBm  
+                    Quality=34/70  Signal level=-76 dBm
                     Encryption key:on
                     ESSID:"LAV Wi-Fi Network"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1132,7 +1132,7 @@ mlan0     Scan completed :
           Cell 39 - Address: 58:97:1E:56:D4:5D
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=39/70  Signal level=-71 dBm  
+                    Quality=39/70  Signal level=-71 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1158,7 +1158,7 @@ mlan0     Scan completed :
           Cell 40 - Address: 84:78:AC:8C:57:EF
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=25/70  Signal level=-85 dBm  
+                    Quality=25/70  Signal level=-85 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1190,7 +1190,7 @@ mlan0     Scan completed :
           Cell 41 - Address: 84:78:AC:8C:57:EC
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=23/70  Signal level=-87 dBm  
+                    Quality=23/70  Signal level=-87 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1216,7 +1216,7 @@ mlan0     Scan completed :
           Cell 42 - Address: 84:78:AC:C1:3F:EC
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1243,7 +1243,7 @@ mlan0     Scan completed :
           Cell 43 - Address: 88:F0:77:AD:52:FD
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=22/70  Signal level=-88 dBm  
+                    Quality=22/70  Signal level=-88 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1270,7 +1270,7 @@ mlan0     Scan completed :
           Cell 44 - Address: 84:78:AC:C1:3F:E3
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=25/70  Signal level=-85 dBm  
+                    Quality=25/70  Signal level=-85 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1297,7 +1297,7 @@ mlan0     Scan completed :
           Cell 45 - Address: 10:BD:18:30:D1:03
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=20/70  Signal level=-90 dBm  
+                    Quality=20/70  Signal level=-90 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1324,7 +1324,7 @@ mlan0     Scan completed :
           Cell 46 - Address: 88:F0:77:F2:48:7C
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=20/70  Signal level=-90 dBm  
+                    Quality=20/70  Signal level=-90 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1350,7 +1350,7 @@ mlan0     Scan completed :
           Cell 47 - Address: 84:78:AC:C1:3F:EA
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1382,7 +1382,7 @@ mlan0     Scan completed :
           Cell 48 - Address: 84:78:AC:98:C8:64
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=30/70  Signal level=-80 dBm  
+                    Quality=30/70  Signal level=-80 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1419,7 +1419,7 @@ mlan0     Scan completed :
           Cell 49 - Address: 88:F0:77:F2:65:A3
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=19/70  Signal level=-91 dBm  
+                    Quality=19/70  Signal level=-91 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1446,7 +1446,7 @@ mlan0     Scan completed :
           Cell 50 - Address: 84:78:AC:C1:3F:E1
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=25/70  Signal level=-85 dBm  
+                    Quality=25/70  Signal level=-85 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1479,7 +1479,7 @@ mlan0     Scan completed :
           Cell 51 - Address: 84:78:AC:98:C8:62
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=29/70  Signal level=-81 dBm  
+                    Quality=29/70  Signal level=-81 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1507,7 +1507,7 @@ mlan0     Scan completed :
           Cell 52 - Address: 88:F0:77:F2:47:25
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1540,7 +1540,7 @@ mlan0     Scan completed :
           Cell 53 - Address: 10:BD:18:3C:C3:10
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=39/70  Signal level=-71 dBm  
+                    Quality=39/70  Signal level=-71 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1573,7 +1573,7 @@ mlan0     Scan completed :
           Cell 54 - Address: 84:78:AC:98:C8:66
                     Channel:6
                     Frequency:2.437 GHz (Channel 6)
-                    Quality=30/70  Signal level=-80 dBm  
+                    Quality=30/70  Signal level=-80 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1606,7 +1606,7 @@ mlan0     Scan completed :
           Cell 55 - Address: 10:BD:18:31:CE:64
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1643,7 +1643,7 @@ mlan0     Scan completed :
           Cell 56 - Address: 88:F0:77:AD:52:F1
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1676,7 +1676,7 @@ mlan0     Scan completed :
           Cell 57 - Address: 10:BD:18:31:CE:66
                     Channel:11
                     Frequency:2.462 GHz (Channel 11)
-                    Quality=42/70  Signal level=-68 dBm  
+                    Quality=42/70  Signal level=-68 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1709,7 +1709,7 @@ mlan0     Scan completed :
           Cell 58 - Address: 58:35:D9:D5:CC:DC
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=14/70  Signal level=-96 dBm  
+                    Quality=14/70  Signal level=-96 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1735,7 +1735,7 @@ mlan0     Scan completed :
           Cell 59 - Address: 88:F0:77:F2:4A:5A
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=22/70  Signal level=-88 dBm  
+                    Quality=22/70  Signal level=-88 dBm
                     Encryption key:on
                     ESSID:"eduroam"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1767,7 +1767,7 @@ mlan0     Scan completed :
           Cell 60 - Address: 58:35:D9:D5:CD:DF
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=13/70  Signal level=-97 dBm  
+                    Quality=13/70  Signal level=-97 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1799,7 +1799,7 @@ mlan0     Scan completed :
           Cell 61 - Address: 88:F0:77:F2:47:29
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=45/70  Signal level=-65 dBm  
+                    Quality=45/70  Signal level=-65 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1831,7 +1831,7 @@ mlan0     Scan completed :
           Cell 62 - Address: 84:78:AC:8C:22:8F
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=12/70  Signal level=-98 dBm  
+                    Quality=12/70  Signal level=-98 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1863,7 +1863,7 @@ mlan0     Scan completed :
           Cell 63 - Address: 88:F0:77:F2:4A:5F
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=22/70  Signal level=-88 dBm  
+                    Quality=22/70  Signal level=-88 dBm
                     Encryption key:on
                     ESSID:"uf"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1895,7 +1895,7 @@ mlan0     Scan completed :
           Cell 64 - Address: 88:F0:77:F2:47:2E
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=46/70  Signal level=-64 dBm  
+                    Quality=46/70  Signal level=-64 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1927,7 +1927,7 @@ mlan0     Scan completed :
           Cell 65 - Address: 84:78:AC:8C:22:8B
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=15/70  Signal level=-95 dBm  
+                    Quality=15/70  Signal level=-95 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1963,7 +1963,7 @@ mlan0     Scan completed :
           Cell 66 - Address: 88:F0:77:F2:4A:5B
                     Channel:36
                     Frequency:5.18 GHz (Channel 36)
-                    Quality=22/70  Signal level=-88 dBm  
+                    Quality=22/70  Signal level=-88 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -1999,7 +1999,7 @@ mlan0     Scan completed :
           Cell 67 - Address: 1C:E6:C7:3F:48:EB
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=29/70  Signal level=-81 dBm  
+                    Quality=29/70  Signal level=-81 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2035,7 +2035,7 @@ mlan0     Scan completed :
           Cell 68 - Address: 88:F0:77:F2:48:7B
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=17/70  Signal level=-93 dBm  
+                    Quality=17/70  Signal level=-93 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2071,7 +2071,7 @@ mlan0     Scan completed :
           Cell 69 - Address: 84:78:AC:98:C8:6B
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=37/70  Signal level=-73 dBm  
+                    Quality=37/70  Signal level=-73 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2107,7 +2107,7 @@ mlan0     Scan completed :
           Cell 70 - Address: 88:F0:77:F2:48:7D
                     Channel:48
                     Frequency:5.24 GHz (Channel 48)
-                    Quality=20/70  Signal level=-90 dBm  
+                    Quality=20/70  Signal level=-90 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2134,7 +2134,7 @@ mlan0     Scan completed :
           Cell 71 - Address: 84:78:AC:C1:3F:E9
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2166,7 +2166,7 @@ mlan0     Scan completed :
           Cell 72 - Address: 84:78:AC:8C:57:EE
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=30/70  Signal level=-80 dBm  
+                    Quality=30/70  Signal level=-80 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2198,7 +2198,7 @@ mlan0     Scan completed :
           Cell 73 - Address: 58:97:1E:B2:82:0E
                     Channel:149
                     Frequency:5.745 GHz
-                    Quality=15/70  Signal level=-95 dBm  
+                    Quality=15/70  Signal level=-95 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2230,7 +2230,7 @@ mlan0     Scan completed :
           Cell 74 - Address: 58:97:1E:B2:82:0C
                     Channel:149
                     Frequency:5.745 GHz
-                    Quality=17/70  Signal level=-93 dBm  
+                    Quality=17/70  Signal level=-93 dBm
                     Encryption key:off
                     ESSID:"ufinfo"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2257,7 +2257,7 @@ mlan0     Scan completed :
           Cell 75 - Address: 84:B2:61:66:79:3D
                     Channel:149
                     Frequency:5.745 GHz
-                    Quality=15/70  Signal level=-95 dBm  
+                    Quality=15/70  Signal level=-95 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2288,7 +2288,7 @@ mlan0     Scan completed :
           Cell 76 - Address: 58:97:1E:56:D4:5B
                     Channel:157
                     Frequency:5.785 GHz
-                    Quality=41/70  Signal level=-69 dBm  
+                    Quality=41/70  Signal level=-69 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2324,7 +2324,7 @@ mlan0     Scan completed :
           Cell 77 - Address: 10:BD:18:30:D1:0D
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:off
                     ESSID:"ufvisitor"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2351,7 +2351,7 @@ mlan0     Scan completed :
           Cell 78 - Address: 10:BD:18:30:D1:09
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2383,7 +2383,7 @@ mlan0     Scan completed :
           Cell 79 - Address: 10:BD:18:30:D1:0E
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s
@@ -2415,7 +2415,7 @@ mlan0     Scan completed :
           Cell 80 - Address: 84:78:AC:C1:3F:EB
                     Channel:64
                     Frequency:5.32 GHz (Channel 64)
-                    Quality=21/70  Signal level=-89 dBm  
+                    Quality=21/70  Signal level=-89 dBm
                     Encryption key:on
                     ESSID:"\x00"
                     Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s

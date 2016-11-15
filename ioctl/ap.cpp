@@ -56,7 +56,8 @@ class AccessPoint {
         float frequency;
         int channel;
         int signal;
-        float quality;
+        int noise;
+        float quality;      // (event->u.qual.qual / range->max_qual.qual)
         bool encrypted;
 };
 
@@ -67,7 +68,6 @@ class AccessPointBuilder {
         // Data members.
         AccessPoint _ap;
         struct iw_range* _range;
-        int _has_range;
         char buffer[128];
         char _progress; // measures build progress
         
@@ -87,13 +87,13 @@ class AccessPointBuilder {
         bool is_built();
         void clear();
         void handle(iw_event* event);
-        void set_range(iw_range* range, int has_range);
+        void set_range(iw_range* range);
 };
 
 // Constructor
 AccessPointBuilder::AccessPointBuilder() {
     _progress = 0x00;
-    _has_range = -1; // range not yet set.
+    _range = NULL;
 }
 
 
@@ -116,9 +116,8 @@ void AccessPointBuilder::clear() {
 
 
 // Set the scan's range data. Used in other adding functions.
-void AccessPointBuilder::set_range(iw_range* range, int has_range) {
+void AccessPointBuilder::set_range(iw_range* range) {
     _range = range;
-    _has_range = has_range;
 }
 
 
@@ -170,9 +169,60 @@ void AccessPointBuilder::add_freq(iw_event* event) {
 
 // Add the signal, quality, and noise. Needs to have iw_range already set.
 void AccessPointBuilder::add_quality(iw_event* event) {
-    // A scan at the hub indicated quality= and signal_level=,
-    // thus, no instances of relative values found yet.
-    // They also aren't broadcasting encrytpion information.
+    /*
+    http://www.speedguide.net/faq/how-does-rssi-dbm-relate-to-signal-quality-percent-439
+    event->u.qual has four members.
+        qual        rssi
+        noise       noise (dBm?)
+        level       dBm?
+        updated     bitmask
+    */
+    
+    // The conditionals below are testing flags via the & operation.
+    if (!(event->u.qual.updated & IW_QUAL_QUAL_INVALID)) {
+        // Set the quality. It is always a relative value.
+        _ap.quality = ((float)event->u.qual.qual) / _range->max_qual.qual;
+    }
+    
+    if (event->u.qual.updated & IW_QUAL_RCPI) {
+        // The signal data is in RCPI (IEEE 802.11k) format.
+        // Signal
+        if (!(event->u.qual.updated & IW_QUAL_LEVEL_INVALID)) {
+            double rcpilevel = (event->u.qual.level / 2.0) - 110.0;
+            _ap.signal = rcpilevel;
+        }
+        // The noise level should be in dBm.
+        // Noise
+        if (!(qual->updated & IW_QUAL_NOISE_INVALID)) {
+            double rcpinoise = (qual->noise / 2.0) - 110.0;
+            _ap.noise = rcpinoise;
+        }
+    } else if ((event->u.qual.updated & IW_QUAL_DBM)
+        || (event->u.qual.level > _range->max_qual.level)) {
+        // The signal data is in units of dBm. Handy!
+        // Signal
+        if (!(event->u.qual.updated & IW_QUAL_LEVEL_INVALID)) {
+            int dblevel = event->u.qual.level;
+            // Implement a range for dBm [-192; 63]
+            if(dblevel >= 64)
+                dblevel -= 0x100;
+            _ap.signal = dblevel;
+        }
+        // Noise
+        if (!(event->u.qual.updated & IW_QUAL_NOISE_INVALID)) {
+            int dbnoise = event->u.qual.noise;
+            // Implement a range for dBm [-192; 63]
+            if(dbnoise >= 64)
+                dbnoise -= 0x100;
+            _ap.noise = dbnoise;
+		}
+    } else {
+        // Level is a relative value to the range.
+        // We do not want this case at all. Fail if we hit it.
+        fail("relative values in signal and noise!");
+        if (!(event->u.qual.updated & IW_QUAL_LEVEL_INVALID)) {}
+        if (!(event->u.qual.updated & IW_QUAL_NOISE_INVALID)) {}
+    }
 }
 
 
@@ -255,7 +305,7 @@ void AccessPointBuilder::handle(iw_event* event) {
             
         case IWEVGENIE:
             // Information events. TODO: research how to parse these!
-            add_genie(event);
+            add_info(event);
             break;
         
         case IWEVCUSTOM:
@@ -278,17 +328,25 @@ void AccessPointBuilder::handle(iw_event* event) {
 class WifiScanner {
     private:
         struct stream_descr stream;
-        struct iw_range range;
+        iw_range range;
         int has_range;
-        struct iw_event iwe;
+        iw_event iwe;
     public:
         int scan(std::string& iface);
         iw_event* get_event();
+        iw_range* get_range();
 };
 
 iw_event* WifiScanner::get_event() {
     if (iw_extract_event_stream(&stream, &iwe, range.we_version_compiled))
         return &iwe;
+    else
+        return NULL;
+}
+
+iw_range* WifiScanner::get_range() {
+    if (has_range)
+        return &range;
     else
         return NULL;
 }
@@ -335,7 +393,10 @@ int WifiScanner::scan(std::string& iface) {
         // Got the results. Terminate the loop.
         scanning = 0;
     }
+    // Assumption: For the scan to be 'successful', it must have range.
     has_range = (iw_get_range_info(sockfd, iface.c_str(), &range) >= 0);
+    if (!has_range)
+        fail("scan() has no range!");
     // Scanning done. Results are present in the event stream.
     iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
     iw_sockets_close(sockfd);
@@ -355,6 +416,7 @@ int main(int argc, char** argv) {
     std::vector<AccessPoint> ap_list;
     
     wifi.scan(interface);
+    ap_builder.set_range(wifi.get_range());
     iw_event* iwe;
     while ((iwe=wifi.get_event()) != NULL) {
         ap_builder.handle(iwe);

@@ -242,12 +242,15 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
 
 // Add an information element. We're looking for specific ones.
 void AccessPointBuilder::add_info(iw_event* event) {
-    // Each IE is at least two bytes.
-    // 0xDD (221) & 0x30 (48) map to WPA1 and WPA2 information.
     /*
-    Table 4-7. Information Elements
+        Since the order of the stream shows only one IE received,
+            they all must be packaged in the data field and parseable.
+        Each IE is at least two bytes.
+        0xDD (221) & 0x30 (48) map to WPA1 and WPA2 information.
+        Table 4-7. Information Elements
     https://www.safaribooksonline.com/library/view/80211-wireless-networks/0596100523/ch04.html
     */
+    
     
 }
 
@@ -310,14 +313,19 @@ void AccessPointBuilder::handle(iw_event* event) {
             //printf("Protocol:%-1.16s\n", event->u.name);
             break;
         
-        case SIOCGIWESSID:
-            printf("SIOCGIWESSID\n");
-            add_essid(event);
+        case IWEVQUAL:
+            printf("IWEVQUAL\n");
+            add_quality(event);
             break;
             
         case SIOCGIWENCODE:
             printf("SIOCGIWENCODE\n");
             add_encrypted(event);
+            break;
+            
+        case SIOCGIWESSID:
+            printf("SIOCGIWESSID\n");
+            add_essid(event);
             break;
             
         case SIOCGIWRATE:
@@ -331,18 +339,7 @@ void AccessPointBuilder::handle(iw_event* event) {
             // Doesn't ever seem to occur.
             printf("SIOCGIWMODUL\n");
             break;
-        
-        case IWEVQUAL:
-            printf("IWEVQUAL\n");
-            add_quality(event);
-            break;
             
-        case IWEVGENIE:
-            // Information events. TODO: research how to parse these!
-            printf("IWEVGENIE\n");
-            add_info(event);
-            break;
-        
         case IWEVCUSTOM:
             // Extra data the router broadcasts back to us. Last beacon time.
             /*char custom[IW_CUSTOM_MAX+1];
@@ -351,6 +348,12 @@ void AccessPointBuilder::handle(iw_event* event) {
         	custom[event->u.data.length] = '\0';
         	printf("Extra:%s\n", custom);*/
         	printf("IWEVCUSTOM\n");
+            break;
+            
+        case IWEVGENIE:
+            // Information events. TODO: research how to parse these!
+            printf("IWEVGENIE\n");
+            add_info(event);
             break;
             
         default:

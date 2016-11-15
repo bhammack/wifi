@@ -4,7 +4,6 @@
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
 #include <string>               // std::string
-#include <iostream>             // std::cout
 
 #define KILO 1000
 #define MEGA 1000000
@@ -25,23 +24,21 @@ class AccessPoint {
         int signal;         // dBm
         int noise;          // dBm
         float quality;      // (event->u.qual.qual / range->max_qual.qual)
-        bool encrypted;     // true/false
-        void print();
+        int encrypted;      // 1/0
+        void display();     // print the ap to stdout.
 };
 
 // Prints the ap. Assumes all fields have been filled.
-// TODO: trash iostream. use printf
-void AccessPoint::print() {
-    std::cout << "===================================\n"
-    << "Mac:\t\t" << mac
-    << "\nEssid:\t\t" << essid
-    << "\nFreq:\t\t" << frequency
-    << "\nChannel:\t" << channel
-    << "\nSignal:\t\t" << signal
-    << "\nNoise:\t\t" << noise
-    << "\nQuality:\t" << quality
-    << "\nEncrypted:\t" << encrypted
-    << "\n";
+void AccessPoint::display() {
+    printf("===================================\n");
+    printf("Mac:\t\t%s\n", mac.c_str());
+    printf("Essid:\t\t%s\n", essid.c_str());
+    printf("Freq:\t\t%f\n", frequency);
+    printf("Channel:\t%d\n", channel);
+    printf("Signal:\t\t%d\n", signal);
+    printf("Noise:\t\t%d\n", noise);
+    printf("Quality:\t\t%f\n", quality);
+    printf("Encrypted:\t%d\n", encrypted);
 }
 
 
@@ -217,9 +214,9 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
     else
         event->u.data.flags |= IW_ENCODE_NOKEY;
     if (event->u.data.flags & IW_ENCODE_DISABLED)
-        _ap.encrypted = false;
+        _ap.encrypted = 0;
     else
-        _ap.encrypted = true;
+        _ap.encrypted = 1;
 }
 
 
@@ -363,7 +360,7 @@ void AccessPointBuilder::handle(iw_event* event) {
             // Temp
             AccessPoint ap;
             ap = get_ap();
-            ap.print();
+            ap.display();
             clear();
         } break;
             

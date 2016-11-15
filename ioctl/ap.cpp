@@ -193,8 +193,8 @@ void AccessPointBuilder::add_quality(iw_event* event) {
         }
         // The noise level should be in dBm.
         // Noise
-        if (!(qual->updated & IW_QUAL_NOISE_INVALID)) {
-            double rcpinoise = (qual->noise / 2.0) - 110.0;
+        if (!(event->u.qual.updated & IW_QUAL_NOISE_INVALID)) {
+            double rcpinoise = (event->u.qual.noise / 2.0) - 110.0;
             _ap.noise = rcpinoise;
         }
     } else if ((event->u.qual.updated & IW_QUAL_DBM)
@@ -252,59 +252,94 @@ void AccessPointBuilder::add_info(iw_event* event) {
 }
 
 void AccessPointBuilder::handle(iw_event* event) {
+    /*
     // Read each event code like this:
     // [SIOC][G][IW][data_element]
+    Apparent order of cmd events:
+    -------------------
+        SIOCGIWAP
+        SIOCGIWFREQ // one of these is channel...
+        SIOCGIWFREQ
+        IWEVQUAL
+        SIOCGIWENCODE
+        SIOCGIWESSID
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWRATE
+        SIOCGIWMODE
+        IWEVCUSTOM
+        IWEVCUSTOM
+        IWEVGENIE
+    -------------------
+    */
+    
     switch(event->cmd) {
         case SIOCGIWAP:
+            printf("SIOCGIWAP\n");
             add_mac(event);
             break;
-        /*
+        
         case SIOCGIWNWID:
             // network-id used in pre 802.11 systems. replaced by essid.
             // Doesn't ever seem to occur.
-            if (event->u.nwid.disabled)
+            printf("SIOCGIWNWID\n");
+            /*if (event->u.nwid.disabled)
                 printf("NWID: off/any\n");
             else
-                printf("NWID: %X\n", event->u.nwid.value);
+                printf("NWID: %X\n", event->u.nwid.value);*/
             break;
-        */
+        
         case SIOCGIWFREQ:
+            printf("SIOCGIWFREQ\n");
             add_freq(event);
             break;
-        /*
+        
         case SIOCGIWMODE:
             // Appears to always be 'Master'.
+            printf("SIOCGIWMODE\n");
             //printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
             break;
-        *//*
+        
         case SIOCGIWNAME:
+            printf("SIOCGIWNAME\n");
             //printf("Protocol:%-1.16s\n", event->u.name);
             break;
-        */
+        
         case SIOCGIWESSID:
+            printf("SIOCGIWESSID\n");
             add_essid(event);
             break;
             
         case SIOCGIWENCODE:
+            printf("SIOCGIWENCODE\n");
             add_encrypted(event);
             break;
             
         case SIOCGIWRATE:
             // Always occurs. Should I capture this though?
+            printf("SIOCGIWRATE\n");
             /*iw_print_bitrate(buffer, event->u.bitrate.value);
-            printf("                    Bit Rate:%s\n", buffer);*/
+            printf("Bit Rate:%s\n", buffer);*/
             break;
-        /*
+        
         case SIOCGIWMODUL:
             // Doesn't ever seem to occur.
+            printf("SIOCGIWMODUL\n");
             break;
-        */
+        
         case IWEVQUAL:
+            printf("IWEVQUAL\n");
             add_quality(event);
             break;
             
         case IWEVGENIE:
             // Information events. TODO: research how to parse these!
+            printf("IWEVGENIE\n");
             add_info(event);
             break;
         
@@ -315,11 +350,11 @@ void AccessPointBuilder::handle(iw_event* event) {
         	    memcpy(custom, event->u.data.pointer, event->u.data.length);
         	custom[event->u.data.length] = '\0';
         	printf("Extra:%s\n", custom);*/
+        	printf("IWEVCUSTOM\n");
             break;
             
         default:
-            printf("(Unknown Wireless Token 0x%04X)\n",event->cmd);
-            fail("handle()");
+            printf("UNKNOWN 0x%04X\n",event->cmd);
             break;
     }
 }

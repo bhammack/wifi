@@ -51,15 +51,30 @@ In this case, we're using it to call the kernel to request data from IO devices.
 //-[AccessPoint]-------------------------------------------------------------//
 class AccessPoint {
     public:
-        std::string essid;  // 32 chars
-        std::string mac;    // 17 chars
-        float frequency;
-        int channel;
-        int signal;
-        int noise;
+        std::string essid;  // 32 chars max
+        std::string mac;    // 17 chars (including colons)
+        float frequency;    // in GHz
+        int channel;        // standard channel numbers
+        int signal;         // dBm
+        int noise;          // dBm
         float quality;      // (event->u.qual.qual / range->max_qual.qual)
-        bool encrypted;
+        bool encrypted;     // true/false
+        void print();
 };
+
+// Prints the ap. Assumes all fields have been filled.
+void AccessPoint::print() {
+    std::cout << "===================================\n"
+    << "Mac:\t\t" << mac
+    << "\nEssid:\t\t" << essid
+    << "\nFreq:\t\t" << frequency
+    << "\nChannel:\t" << channel
+    << "\nSignal:\t\t" << signal
+    << "\nNoise:\t\t" << noise
+    << "\nQuality:\t" << quality
+    << "\nEncrypted:\t" << encrypted
+    << "\n";
+}
 
 
 //-[AccessPointBuilder]------------------------------------------------------//
@@ -68,9 +83,7 @@ class AccessPointBuilder {
         // Data members.
         AccessPoint _ap;
         struct iw_range* _range;
-        char buffer[128];
         char _progress; // measures build progress
-        
         // Building functions. Each one sets a bit of _progress.
         void add_mac(iw_event* event);
         void add_essid(iw_event* event);
@@ -105,7 +118,7 @@ AccessPoint AccessPointBuilder::get_ap() {
 
 // If the bitmask of all adds is the correct value, return 1.
 bool AccessPointBuilder::is_built() {
-    return(_progress == 0xff);
+    return(_progress == 0xff); // 255
 }
 
 
@@ -123,6 +136,7 @@ void AccessPointBuilder::set_range(iw_range* range) {
 
 // Add the mac address. This is also the first function called.
 void AccessPointBuilder::add_mac(iw_event* event) {
+    char buffer[17];
     sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X",
         event->u.ap_addr.sa_data[0], event->u.ap_addr.sa_data[1],
         event->u.ap_addr.sa_data[2], event->u.ap_addr.sa_data[3],
@@ -250,8 +264,6 @@ void AccessPointBuilder::add_info(iw_event* event) {
         Table 4-7. Information Elements
     https://www.safaribooksonline.com/library/view/80211-wireless-networks/0596100523/ch04.html
     */
-    
-    
 }
 
 void AccessPointBuilder::handle(iw_event* event) {
@@ -283,14 +295,18 @@ void AccessPointBuilder::handle(iw_event* event) {
     
     switch(event->cmd) {
         case SIOCGIWAP:
+            #ifdef DEBUG
             printf("SIOCGIWAP\n");
+            #endif
             add_mac(event);
             break;
         
         case SIOCGIWNWID:
             // network-id used in pre 802.11 systems. replaced by essid.
             // Doesn't ever seem to occur.
+            #ifdef DEBUG
             printf("SIOCGIWNWID\n");
+            #endif
             /*if (event->u.nwid.disabled)
                 printf("NWID: off/any\n");
             else
@@ -298,46 +314,62 @@ void AccessPointBuilder::handle(iw_event* event) {
             break;
         
         case SIOCGIWFREQ:
+            #ifdef DEBUG
             printf("SIOCGIWFREQ\n");
+            #endif
             add_freq(event);
             break;
         
         case SIOCGIWMODE:
             // Appears to always be 'Master'.
+            #ifdef DEBUG
             printf("SIOCGIWMODE\n");
+            #endif
             //printf("Mode:%s\n", iw_operation_mode[event->u.mode]);
             break;
         
         case SIOCGIWNAME:
+            #ifdef DEBUG
             printf("SIOCGIWNAME\n");
+            #endif
             //printf("Protocol:%-1.16s\n", event->u.name);
             break;
         
         case IWEVQUAL:
+            #ifdef DEBUG
             printf("IWEVQUAL\n");
+            #endif
             add_quality(event);
             break;
             
         case SIOCGIWENCODE:
+            #ifdef DEBUG
             printf("SIOCGIWENCODE\n");
+            #endif
             add_encrypted(event);
             break;
             
         case SIOCGIWESSID:
+            #ifdef DEBUG
             printf("SIOCGIWESSID\n");
+            #endif
             add_essid(event);
             break;
             
         case SIOCGIWRATE:
             // Always occurs. Should I capture this though?
+            #ifdef DEBUG
             printf("SIOCGIWRATE\n");
+            #endif
             /*iw_print_bitrate(buffer, event->u.bitrate.value);
             printf("Bit Rate:%s\n", buffer);*/
             break;
         
         case SIOCGIWMODUL:
             // Doesn't ever seem to occur.
+            #ifdef DEBUG
             printf("SIOCGIWMODUL\n");
+            #endif
             break;
             
         case IWEVCUSTOM:
@@ -347,14 +379,24 @@ void AccessPointBuilder::handle(iw_event* event) {
         	    memcpy(custom, event->u.data.pointer, event->u.data.length);
         	custom[event->u.data.length] = '\0';
         	printf("Extra:%s\n", custom);*/
+        	#ifdef DEBUG
         	printf("IWEVCUSTOM\n");
+        	#endif
             break;
             
-        case IWEVGENIE:
+        case IWEVGENIE: {
             // Information events. TODO: research how to parse these!
+            #ifdef DEBUG
             printf("IWEVGENIE\n");
+            #endif
             add_info(event);
-            break;
+            
+            // Temp
+            AccessPoint ap;
+            ap = get_ap();
+            ap.print();
+            clear();
+        } break;
             
         default:
             printf("UNKNOWN 0x%04X\n",event->cmd);

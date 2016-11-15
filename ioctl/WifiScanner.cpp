@@ -3,6 +3,18 @@
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
+#include <time.h>               // timestamping
+
+/*
+    time_t rawtime;
+    struct tm* timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    
+
+
+*/
+
 
 //-[WifiScanner]-------------------------------------------------------------//
 class WifiScanner {
@@ -11,12 +23,28 @@ class WifiScanner {
         iw_range range;
         int has_range;
         iw_event iwe;
+        struct tm* _scantime;
+        // struct geographic_coordinates or whatever...
+        // Spacetime scan
+        int get_geopos();
     public:
         int scan(const char* iface);
         iw_event* get_event();
         iw_range* get_range();
 };
 
+// Get the geographic coordinates via gpsd and set the time of scan.
+int WifiScanner::get_geopos() {
+    // Set the time for the latest results.
+    time_t rawtime;
+    //time(&rawtime);
+    _scantime = localtime(&rawtime);
+    //strftime();
+    return 0;
+}
+
+
+// Pop an event reference from the event stream.
 iw_event* WifiScanner::get_event() {
     if (iw_extract_event_stream(&stream, &iwe, range.we_version_compiled))
         return &iwe;
@@ -24,6 +52,8 @@ iw_event* WifiScanner::get_event() {
         return NULL;
 }
 
+
+// Return a reference to the latest scan's range.
 iw_range* WifiScanner::get_range() {
     if (has_range)
         return &range;
@@ -85,5 +115,12 @@ int WifiScanner::scan(const char* iface) {
     // Scanning done. Results are present in the event stream.
     iw_init_event_stream(&stream, (char*)buffer, request.u.data.length);
     iw_sockets_close(sockfd);
+    
+    // Get geographic coordinates and set the time of scan.
+    if (get_geopos() < 0) {
+        fprintf(stderr, "get_geopos(): failure!");
+        exit(1);
+    }
+    
     return 0;
 }

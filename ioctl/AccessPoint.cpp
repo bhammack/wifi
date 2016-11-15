@@ -3,11 +3,13 @@
 #include <stdio.h>              // fprintf(), stdout, perror();
 #include <stdlib.h>             // malloc();
 #include <string.h>             // strcpy();
-#include <string>               // std::string
 
 #define KILO 1000
 #define MEGA 1000000
 #define GIGA 1000000000
+
+#define ESSID_SIZE 33           // technically 32, but +1 for null terminator.
+#define MAC_SIZE 17             // 17 characters, including colons.
 
 // From iwlib.h, so I don't have to type 'struct' everywhere.
 typedef struct iw_event iw_event;
@@ -17,8 +19,8 @@ typedef struct iw_range iw_range;
 //-[AccessPoint]-------------------------------------------------------------//
 class AccessPoint {
     public:
-        std::string essid;  // 32 chars max
-        std::string mac;    // 17 chars (including colons)
+        char essid[ESSID_SIZE];
+        char mac[MAC_SIZE];
         float frequency;    // in GHz
         int channel;        // standard channel numbers
         int signal;         // dBm
@@ -31,13 +33,13 @@ class AccessPoint {
 // Prints the ap. Assumes all fields have been filled.
 void AccessPoint::display() {
     printf("===================================\n");
-    printf("Mac:\t\t%s\n", mac.c_str());
-    printf("Essid:\t\t%s\n", essid.c_str());
+    printf("Mac:\t\t%s\n", mac);
+    printf("Essid:\t\t%s\n", essid);
     printf("Freq:\t\t%f\n", frequency);
     printf("Channel:\t%d\n", channel);
     printf("Signal:\t\t%d\n", signal);
     printf("Noise:\t\t%d\n", noise);
-    printf("Quality:\t\t%f\n", quality);
+    printf("Quality:\t%1.3f\n", quality); // TODO: figure out how to format.
     printf("Encrypted:\t%d\n", encrypted);
 }
 
@@ -90,6 +92,8 @@ bool AccessPointBuilder::is_built() {
 // Clear the current AP from memory and start fresh.
 void AccessPointBuilder::clear() {
     _ap = AccessPoint();
+    memset(_ap.essid, 0, ESSID_SIZE);
+    memset(_ap.mac, 0, MAC_SIZE);
 }
 
 
@@ -101,29 +105,26 @@ void AccessPointBuilder::set_range(iw_range* range) {
 
 // Add the mac address. This is also the first function called.
 void AccessPointBuilder::add_mac(iw_event* event) {
-    char buffer[17];
-    sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X",
+    sprintf(_ap.mac, "%02X:%02X:%02X:%02X:%02X:%02X",
         event->u.ap_addr.sa_data[0], event->u.ap_addr.sa_data[1],
         event->u.ap_addr.sa_data[2], event->u.ap_addr.sa_data[3],
         event->u.ap_addr.sa_data[4], event->u.ap_addr.sa_data[5]);
-    _ap.mac = std::string(buffer);
 }
 
 
 // Add the essid.
 void AccessPointBuilder::add_essid(iw_event* event) {
     if (event->u.essid.length == 1) {
-        _ap.essid = "";
+        _ap.essid[0] = 0x00;
         return;
     }
-    char essid[IW_ESSID_MAX_SIZE+1];
     if((event->u.essid.pointer) && (event->u.essid.length))
-        memcpy(essid, event->u.essid.pointer, event->u.essid.length);
-    essid[event->u.essid.length] = '\0';
-    if (event->u.essid.flags)
+        memcpy(_ap.essid, event->u.essid.pointer, event->u.essid.length);
+    _ap.essid[event->u.essid.length] = '\0';
+    /*if (event->u.essid.flags)
         _ap.essid = std::string(essid);
     else
-        _ap.essid = "";
+        _ap.essid = "";*/
 }
 
 

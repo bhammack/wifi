@@ -230,6 +230,8 @@ void AccessPointBuilder::add_info(iw_event* event) {
         0xDD (221) & 0x30 (48) map to WPA1 and WPA2 information.
         Table 4-7. Information Elements
     https://www.safaribooksonline.com/library/view/80211-wireless-networks/0596100523/ch04.html
+    
+    http://forums.cabling-design.com/wireless/what-does-the-information-element-with-elementid-221-represe-29948-.htm
     */
 }
 

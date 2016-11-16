@@ -28,6 +28,9 @@ http://w1.fi/hostapd/devel/wireless__copy_8h_source.html
 // Measuring signal strength:
 https://support.metageek.com/hc/en-us/articles/201955754-Understanding-WiFi-Signal-Strength
 
+// Information elements: (WHERE ARE THEY???)
+http://forums.cabling-design.com/wireless/what-does-the-information-element-with-elementid-221-represe-29948-.htm
+
 <------------------------------< NOTES TO SELF >------------------------------>
 You can set to scan all by using flag IW_SCAN_ALL_ESSID,
     and choose scan type with flag IW_SCAN_TYPE_ACTIVE or IW_SCAN_TYPE_PASSIVE.

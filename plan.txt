@@ -11,6 +11,11 @@ Components this project will require:
       - https://en.wikipedia.org/wiki/Gpsd
       - https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
       - THE DEVICE IN USE FOR GPS IS /dev/ttyUSB0!!!!!
+      - sudo apt-get install:
+        gpsd 
+        gpsd-clients 
+        python-gps
+        libgps-dev
     
   3.  SQL instance. Will likely use sqlite3, cause it's just fantastic.
       - https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm

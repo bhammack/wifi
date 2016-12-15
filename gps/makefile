@@ -1,2 +1,9 @@
-all:
-	cc gps.c -o gps.o -lm -lgps -std=c99
+CFLAGS=-std=c99 -Wall
+
+all: gps
+
+gps: gps.c
+	$(CC) $(CFLAGS) gps.c -lgps -o gps.o
+
+clean:
+	rm -f *.o

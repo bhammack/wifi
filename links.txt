@@ -1,8 +1,8 @@
 Libgps documentation
 	http://www.catb.org/gpsd/libgps.html
-	https://fossies.org/linux/gpsd/gps.h
 	https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
 	http://www.catb.org/gpsd/client-howto.html
+	https://fossies.org/dox/gpsd-3.16/gps_8h_source.html
 
 OUR DEVICE IS /dev/ttyUSB0
 

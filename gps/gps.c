@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
+
 int main(int argc, char** argv) {
 	struct gps_data_t gpsdata;
 	int scanning = 1;
 	int rv;
 	if (gps_open("localhost", "2947", &gpsdata) < 0) {
-		perror("gps_open()");
+		fprintf(stderr, "gps_open(): Error\n");
 		return 1;
 	}
 	gps_stream(&gpsdata, WATCH_ENABLE | WATCH_JSON, NULL);

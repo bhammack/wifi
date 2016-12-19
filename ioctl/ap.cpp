@@ -9,7 +9,7 @@
 #include <vector>               // std::vector
 
 // https://www.tutorialspoint.com/sqlite/sqlite_installation.htm
-#include <sqlite3.h>            // sqlite3
+//#include <sqlite3.h>            // sqlite3
 
 #include "WifiScanner.cpp"
 #include "AccessPoint.cpp"
@@ -43,7 +43,7 @@ In this case, we're using it to call the kernel to request data from IO devices.
 
 //-[main entry point]--------------------------------------------------------//
 int main(int argc, char** argv) {
-    std::string interface = "mlan0";
+    std::string interface = "wlan0";
     WifiScanner wifi;
     AccessPointBuilder ap_builder;
     std::vector<AccessPoint> ap_list;
@@ -58,5 +58,7 @@ int main(int argc, char** argv) {
             ap_builder.clear();
         }
     }
+    
+    
     return 0;
 }

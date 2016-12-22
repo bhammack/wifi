@@ -29,16 +29,16 @@ class Position {
 		double climb_dev; 
 };
 
-class GPSReceiver {
+class GpsScanner {
 	private:
 		struct gps_data_t gpsdata;
 		void populate(Position* pos);
 		int rv;
 	public:
-		int fix(Position* pos);
+		int scan(Position* pos);
 }
 
-int GPSReceiver::fix(Position* pos) {
+int GpsScanner::scan(Position* pos) {
 	memset(&gpsdata, 0, sizeof(gpsdata));
 	int scanning = 1;
 	if ((rv = gps_open("localhost", "2947", &gpsdata)) < 0) {
@@ -46,15 +46,14 @@ int GPSReceiver::fix(Position* pos) {
 		return -1;
 	}
 	gps_stream(&gpsdata, WATCH_ENABLE | WATCH_JSON, NULL);
-	
 	while (scanning) {
 		if (gps_waiting(&gpsdata, 2000000)) {
 			if ((rv  = gps_read(&gpsdata)) =< 0) {
 				fprintf(stderr, "gps_read(): Data not available...\n");
 			} 
 			else {
-				if ((gpsdata.status == STATUS_FIX) && 
-					(gpsdata.fix.mode == MODE_2D || 
+				if ((gpsdata.status == STATUS_FIX) &&
+					(gpsdata.fix.mode == MODE_2D ||
 					gpsdata.fix.mode == MODE_3D)) {
 						scanning = 0;
 						populate(pos);
@@ -74,7 +73,7 @@ int GPSReceiver::fix(Position* pos) {
 }
 
 
-void GPSReceiver::populate(Position* pos) {
+void GpsScanner::populate(Position* pos) {
 	// Populate pos with the current values found in gps_data_t.
 	pos->time = (time_t) gpsdata.fix.time
 	pos->satellites_used = gpsdata.satellites_used;

@@ -1,9 +1,9 @@
 CFLAGS=-Wall
 
-all: gps
+all: scan
 
-gps: gps.c
-	$(CC) $(CFLAGS) -o gps.o gps.c -lgps
+scan: scan.cpp
+	g++ $(CFLAGS) -o scan.o scan.cpp -lgps -liw
 
 clean:
 	rm -f *.o

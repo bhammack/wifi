@@ -27,11 +27,11 @@ class AccessPoint {
         int noise;          // dBm
         float quality;      // (event->u.qual.qual / range->max_qual.qual)
         int encrypted;      // 1/0
-        void display();     // print the ap to stdout.
+        void toString();     // print the ap to stdout.
 };
 
 // Prints the ap. Assumes all fields have been filled.
-void AccessPoint::display() {
+void AccessPoint::toString() {
     printf("===================================\n");
     printf("Mac:\t\t%s\n", mac);
     printf("Essid:\t\t%s\n", essid);
@@ -50,7 +50,7 @@ class AccessPointBuilder {
         // Data members.
         AccessPoint _ap;
         struct iw_range* _range;
-        char _progress; // measures build progress
+        bool _is_built; // measures build progress
         // Building functions. Each one sets a bit of _progress.
         void add_mac(iw_event* event);
         void add_essid(iw_event* event);
@@ -72,7 +72,7 @@ class AccessPointBuilder {
 
 // Constructor
 AccessPointBuilder::AccessPointBuilder() {
-    _progress = 0x00;
+    _is_built = false;
     _range = NULL;
 }
 
@@ -85,7 +85,7 @@ AccessPoint AccessPointBuilder::get_ap() {
 
 // If the bitmask of all adds is the correct value, return 1.
 bool AccessPointBuilder::is_built() {
-    return(_progress == 0xff); // 255
+    return _is_built;
 }
 
 
@@ -361,10 +361,10 @@ void AccessPointBuilder::handle(iw_event* event) {
             add_info(event);
             
             // Temp
-            AccessPoint ap;
-            ap = get_ap();
-            ap.display();
-            clear();
+            //AccessPoint ap = get_ap();
+            //ap.toString();
+            //clear();
+			_is_built = true;
         } break;
             
         default:

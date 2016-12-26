@@ -3,6 +3,8 @@
 #include "GpsScanner.cpp"
 #include <vector>
 
+// sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
+
 int main(int argc, char** argv) {
 	WifiScanner wifi;
 	GpsScanner gps;

@@ -1,7 +1,7 @@
 #include <gps.h>
 #include <time.h>
+#include <cmath>
 
-// sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
 
 // Pretty much a straight C++ copy of the gps_fix_t struct, with extra bells and whistles.
 class Position {
@@ -61,14 +61,16 @@ int GpsScanner::scan(Position* pos) {
 				fprintf(stderr, "gps_read(): Data not available...\n");
 			} 
 			else {
-				// Need to make sure lat and lng aren't NaN!!!!!
-				if ((gpsdata.status == STATUS_FIX) &&
-					(gpsdata.fix.mode == MODE_2D ||
-					gpsdata.fix.mode == MODE_3D)) {
+				// We've got gpsdata. Verify that it's a fix on our location.
+				if (
+				(gpsdata.status == STATUS_FIX) && 
+				(gpsdata.fix.mode == MODE_2D || gpsdata.fix.mode == MODE_3D) &&
+				(!std::isnan(gpsdata.fix.latitude) && !std::isnan(gpsdata.fix.longitude))
+					) {
 						scanning = 0;
 						populate(pos);
-						printf("Got a fix on our position!\n");
 				} else {
+					// The gpsdata doesn't contain anything meaningful, yet.
 					printf("Waiting for a location lock...\n");
 				}
 			}

@@ -1,9 +1,11 @@
 #include <iwlib.h>              // Wireless Extension.
 #include <linux/wireless.h>     // Linux wireless tools. Structs & constants.
 #include <stdio.h>              // fprintf(), stdout, perror();
-#include <stdlib.h>             // malloc();
-#include <string.h>             // strcpy();
-#include <time.h>               // timestamping
+//#include <stdlib.h>             // malloc();
+//#include <string.h>             // strcpy();
+//#include <time.h>               // timestamping
+
+// TODO: keep malloc stuff and add conditional fprintf stuff.
 
 /*
 	sudo apt-get install libiw-dev

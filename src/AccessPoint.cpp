@@ -1,8 +1,8 @@
 #include <iwlib.h>              // Wireless Extension.
 #include <linux/wireless.h>     // Linux wireless tools. Structs & constants.
-#include <stdio.h>              // fprintf(), stdout, perror();
-#include <stdlib.h>             // malloc();
-#include <string.h>             // strcpy();
+#include <stdio.h>              // fprintf();
+//#include <stdlib.h>             // malloc();
+//#include <string.h>             // strcpy();
 
 #define KILO 1000
 #define MEGA 1000000

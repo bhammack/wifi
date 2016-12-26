@@ -1,10 +1,7 @@
 #include <gps.h>
 #include <time.h>
-// #include date time or whatever.
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <unistd.h>
 
+// sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
 
 // Pretty much a straight C++ copy of the gps_fix_t struct, with extra bells and whistles.
 class Position {
@@ -26,8 +23,20 @@ class Position {
 		double altitude_dev;
 		double heading_dev;
 		double speed_dev;
-		double climb_dev; 
+		double climb_dev;
+		void print();
 };
+
+void Position::print() {
+	printf("===================================\n");
+	printf("Timestamp:\t\t%ld\n", timestamp);
+	printf("Satellites:\t\t%d/%d\n", satellites_used, satellites_known);
+	printf("Latitude:\t\t%f\n", latitude);
+	printf("Longitude:\t\t%f\n", longitude);
+}
+
+
+
 
 class GpsScanner {
 	private:
@@ -36,7 +45,7 @@ class GpsScanner {
 		int rv;
 	public:
 		int scan(Position* pos);
-}
+};
 
 int GpsScanner::scan(Position* pos) {
 	memset(&gpsdata, 0, sizeof(gpsdata));
@@ -48,10 +57,11 @@ int GpsScanner::scan(Position* pos) {
 	gps_stream(&gpsdata, WATCH_ENABLE | WATCH_JSON, NULL);
 	while (scanning) {
 		if (gps_waiting(&gpsdata, 2000000)) {
-			if ((rv  = gps_read(&gpsdata)) =< 0) {
+			if ((rv  = gps_read(&gpsdata)) <= 0) {
 				fprintf(stderr, "gps_read(): Data not available...\n");
 			} 
 			else {
+				// Need to make sure lat and lng aren't NaN!!!!!
 				if ((gpsdata.status == STATUS_FIX) &&
 					(gpsdata.fix.mode == MODE_2D ||
 					gpsdata.fix.mode == MODE_3D)) {
@@ -75,7 +85,7 @@ int GpsScanner::scan(Position* pos) {
 
 void GpsScanner::populate(Position* pos) {
 	// Populate pos with the current values found in gps_data_t.
-	pos->time = (time_t) gpsdata.fix.time
+	pos->timestamp = (time_t) gpsdata.fix.time;
 	pos->satellites_used = gpsdata.satellites_used;
 	pos->satellites_known = gpsdata.satellites_visible;
 	//

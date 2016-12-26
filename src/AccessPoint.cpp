@@ -27,11 +27,11 @@ class AccessPoint {
         int noise;          // dBm
         float quality;      // (event->u.qual.qual / range->max_qual.qual)
         int encrypted;      // 1/0
-        void toString();     // print the ap to stdout.
+        void print();     // print the ap to stdout.
 };
 
 // Prints the ap. Assumes all fields have been filled.
-void AccessPoint::toString() {
+void AccessPoint::print() {
     printf("===================================\n");
     printf("Mac:\t\t%s\n", mac);
     printf("Essid:\t\t%s\n", essid);
@@ -94,6 +94,7 @@ void AccessPointBuilder::clear() {
     _ap = AccessPoint();
     memset(_ap.essid, 0, ESSID_SIZE);
     memset(_ap.mac, 0, MAC_SIZE);
+	_is_built = false;
 }
 
 

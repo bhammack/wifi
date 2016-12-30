@@ -30,6 +30,9 @@ Components this project will require:
 	5. Calculator program. Something to translate the data points we collect to estimated coordaintes.
 		- Read this:
 		- http://www.javawa.nl/coordcalc_en.html
+		
+	6. A map interface or API. Or, depositing our estimated coordinates to a KML location file.
+	
 	
 Progress:
 	1. Completed. Using IOctl to communicate with the wifi driver. I have developed a C++ wrapper;

@@ -1,37 +1,49 @@
 Components this project will require:
-  1.  Airmon-ng, or some kind of other wifi scanning utility. Preferably with API bindings.
-      - Or it seems I can use ioctl. Read the link below...
-      - http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
-      - https://www.aircrack-ng.org/doku.php?id=airodump-ng
-      * http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
-      * https://github.com/thodg/wifi/blob/master/libwifi/scan.c
-    
-  2.  GPS module. Necessary to get the current position.
-      - The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 
-      - https://en.wikipedia.org/wiki/Gpsd
-      - https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
-      - THE DEVICE IN USE FOR GPS IS /dev/ttyUSB0!!!!!
-      - sudo apt-get install:
-        gpsd 
-        gpsd-clients 
-        python-gps
-        libgps-dev
-    
-  3.  SQL instance. Will likely use sqlite3, cause it's just fantastic.
-      - https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
-  
-  4.  Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
-      - I've done this before with the bustracker program (or was it Leaflet.js?). Either way...
-      - https://developers.google.com/maps/
-      - http://leafletjs.com/
-  
-  5.  Calculator program. Something to translate the data points we collect to estimated coordaintes.
-      - Read this:
-      - http://www.javawa.nl/coordcalc_en.html
+	1. Airmon-ng, or some kind of other wifi scanning utility. Preferably with API bindings.
+		- Or it seems I can use ioctl. Read the link below...
+		- http://blog.ajhodges.com/2011/10/using-ioctl-to-gather-wifi-information.html
+		- https://www.aircrack-ng.org/doku.php?id=airodump-ng
+		* http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
+		* https://github.com/thodg/wifi/blob/master/libwifi/scan.c
+	There aren't any bindings for airodump-ng (the classic 80211 packet sniffer).
+	However, the application itself is written in C. This could be useful.
+	The IOctl link only works on an already-connected interface. Not what I'm looking for.
+	Wifite is a pythonic automater for aircrack-ng. It wraps the airodump process. 
+	I'd rather not just "wrap" airodump. Too easy to do.
 
-Findings from initial research:
-  1.  There aren't any bindings for airodump-ng (the classic 80211 packet sniffer).
-        However, the application itself is written in C. This could be useful.
-      The IOctl link only works on an already-connected interface. Not what I'm looking for.
-      Wifite is a pythonic automater for aircrack-ng. It wraps the airodump process. 
-        I'd rather not just "wrap" airodump. Too easy to do.
+	2. GPS module. Necessary to get the current position.
+		- The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 
+		- https://en.wikipedia.org/wiki/Gpsd
+		- https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
+		- THE DEVICE IN USE FOR GPS IS /dev/ttyUSB0!!!!!
+		- sudo apt-get install:
+			gpsd, gpsd-clients, python-gps, libgps-dev
+	
+	3. SQL instance. Will likely use sqlite3, cause it's just fantastic.
+		- https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
+ 
+	4. Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
+		- I've done this before with the bustracker program (or was it Leaflet.js?). Either way...
+		- https://developers.google.com/maps/
+		- http://leafletjs.com/
+  
+	5. Calculator program. Something to translate the data points we collect to estimated coordaintes.
+		- Read this:
+		- http://www.javawa.nl/coordcalc_en.html
+	
+Progress:
+	1. Completed. Using IOctl to communicate with the wifi driver. I have developed a C++ wrapper;
+	to interface with the IOctl command via iwlib. It returns a stream of wifi events captured from
+	the receiver, which need be parsed for specific data. This is a fairly pedantic process, so I've
+	also written a Builder class that assembles access points from the iwevent data stream.
+	
+	2. Completed. I have purchased a GPS usb receiver from amazon.com to use with this project. Using
+	the GPSD daemon and the libgps-dev (C wrappings to the GPSD daemon), I can poll for data from the
+	receiver device. 
+	
+	3. In progress. I am currently debating whether I should use a database schema such as SQLite, or
+	just dump the raw data into a flat file. The primary reason I chose a database to begin with is because
+	there will be substantial duplication of data in a flat csv file format. For instance, I only need one
+	instance of the mac address :: ssid relationship. However, flat files will allow me to remove the
+	dependency on SQLite, which is advantageous for creating an expanding codebase. Or, heh, I could just
+	implement both, and see which one I like best. I'll likely go this approach.

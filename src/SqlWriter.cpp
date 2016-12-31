@@ -104,63 +104,64 @@ static int exists_callback(void* mac_address, int argc, char** argv, char** col_
 
 int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
 	fprintf(stdout, "Attempting to write to the database...\n");
+	
+	// Writing to the database will be doine with only one sqlite3_exec() command.
+	std::ostringstream q; // queries. All executed at once.
+
 	// INSERT INTO scans VALUES ()
-	std::ostringstream oss;
 	// First create the query to insert into scans.
-	oss << "INSERT INTO scans VALUES (" << pos->time << ", ";
-	oss << pos->latitude << ", " << pos->longitude << ");";
-	// Second and thirdly, create the query to insert access point data.
+	q << "INSERT INTO scans VALUES(";
+	q << pos->time << "," << pos->latitude << "," << pos->longitude << ");";	
 	
-	
-	std::string new_ap_query;
+	// To build the one query we'll execute, iterate over all ap's found.
+	std::string ap_query;
 	for (unsigned int i = 0; i < ap_list->size(); i++) {
 		AccessPoint ap = ap_list->at(i);
-		new_ap_query = "SELECT EXISTS(SELECT 1 FROM routers WHERE mac=\"" + std::string(ap.mac) + "\" LIMIT 1);";
-		
+		ap_query = "SELECT EXISTS(SELECT 1 FROM routers WHERE mac=\"" + std::string(ap.mac) + "\" LIMIT 1);";
 		int mac_exists = 0;
-		rv = sqlite3_exec(db, new_ap_query.c_str(), exists_callback, &mac_exists, &errmsg);
+		rv = sqlite3_exec(db, ap_query.c_str(), exists_callback, &mac_exists, &errmsg);
 		if (rv != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", errmsg);
 			sqlite3_free(errmsg);
 			return -1;
 		}
 		
+		// We've got a router on the hook. If it's new, insert it.
 		if (mac_exists) {
-			printf("mac %s exists...\n", ap.mac);
-			
-			
-			
-			
-			
-			
+			printf("[SqlWriter]: Old MAC %s already exists...\n", ap.mac);
 		} else {
-			std::ostringstream q;
-			q << "INSERT INTO routers VALUES(\"";
-			q << ap.mac << "\", \"" << ap.essid << "\", ";
-			q << 0 << ", " << 0 << ");"; // lat and lng estimiates init to 0's.
-			
-			
-			
-			printf("mac %s does not exist; adding...\n", ap.mac);
-			//std::string insert_mac = "INSERT INTO routers VALUES(\"" +
-			//std::string(ap.mac) + "\", \"" + std::string(ap.essid) + "\", 0, 0);";
-			
-			rv = sqlite3_exec(db, q.str().c_str(), NULL, 0, &errmsg);
-			if (rv != SQLITE_OK) {
-				fprintf(stderr, "SQL error: %s\n", errmsg);
-				sqlite3_free(errmsg);
-				return -1;
-			}
+			printf("[SqlWriter]: New MAC %s found! Adding...\n", ap.mac);
+			// MAC doesn't exist in the database. Add it.
+			q << "INSERT INTO routers VALUES(";
+			q << "\"" << ap.mac << "\", \"" << ap.essid << "\",";
+			q << 0 << "," << 0 << ");"; // lat and lng estimiates init to 0's.
 		}
+		
+		// Insert the new data entries into the data table.
+		q << "INSERT INTO data VALUES(";
+		q << pos->time << "," << "\"" << ap.mac << "\"" << ",";
+		q << ap.signal << "," << ap.noise << ");";
 	}
 	
-	//sqlite3_exec(db, oss.str(), NULL, 0, NULL);
+	// Execute the query formed from the stringstream.
+	rv = sqlite3_exec(db, q.str().c_str(), NULL, 0, &errmsg);
+	if (rv != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		sqlite3_free(errmsg);
+		return -1;
+	}
 	
-	
+	// TODO: Return something different?
 	return ap_list->size();
 }
 
-
+/*
+	TODO: Question > Is there an iterative triangulation algorithm?
+	Like, is there an algorithm that I can continuiously feed data 
+	(instead of store all of that data and average it or whatever),
+	as this would totally negate the use of a database.
+	Which, nullifies a bit of my project, but makes it more elegant.
+*/
 
 
 

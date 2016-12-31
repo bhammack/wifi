@@ -2,13 +2,15 @@
 #include <linux/wireless.h>     // Linux wireless tools. Structs & constants.
 #include <stdio.h>              // fprintf(), stdout, perror();
 //#include <stdlib.h>             // malloc();
-//#include <string.h>             // strcpy();
-//#include <time.h>               // timestamping
 
 // TODO: keep malloc stuff and add conditional fprintf stuff.
 
 /*
 	sudo apt-get install libiw-dev
+	TODO: The difference between bssid and essid is that bssid usually corresponds
+	with the MAC address of the router. Essid is the name of a signal broadcasting from an AP.
+	An AP can broadcast multiple SSID's (UF's network is ESSID, mine is BSSID).
+	TODO: Investigate RSSI -- measure of signal strength.
 */
 
 
@@ -74,7 +76,7 @@ int WifiScanner::scan(const char* iface) {
         // Keep sending SIOCGIWSCAN to the socket to request scan results.
         if (iw_get_ext(sockfd, iface, SIOCGIWSCAN, &request) < 0) {
             if (errno == EAGAIN) {
-                fprintf(stderr, "resource in use...\n");
+                fprintf(stderr, "%s in use...\n", iface);
                 continue;
             } else if (errno == E2BIG) {
                 fprintf(stderr, "buffer too small!\n");

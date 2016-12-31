@@ -46,6 +46,6 @@ int scan(const char* iface) {
 }
 
 int main(int argc, char** argv) {
-	printf("scan() returned %d\n", scan("wlan0"));
+	printf("scan() returned %d\n", scan("wlan1"));
 	return 0;
 }

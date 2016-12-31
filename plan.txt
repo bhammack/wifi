@@ -21,6 +21,8 @@ Components this project will require:
 	
 	3. SQL instance. Will likely use sqlite3, cause it's just fantastic.
 		- https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
+		- sudo apt-get install:
+			sqlite3, libsqlite3-dev
  
 	4. Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
 		- I've done this before with the bustracker program (or was it Leaflet.js?). Either way...

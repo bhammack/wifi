@@ -7,7 +7,7 @@
 class Position {
 	public:
 		// Metadata
-		time_t timestamp;
+		time_t time;
 		int satellites_used;
 		int satellites_known;
 		// Datapoints
@@ -29,7 +29,7 @@ class Position {
 
 void Position::print() {
 	printf("===================================\n");
-	printf("Timestamp:\t\t%ld\n", timestamp);
+	printf("Timestamp:\t\t%ld\n", time);
 	printf("Satellites:\t\t%d/%d\n", satellites_used, satellites_known);
 	printf("Latitude:\t\t%f\n", latitude);
 	printf("Longitude:\t\t%f\n", longitude);
@@ -87,7 +87,7 @@ int GpsScanner::scan(Position* pos) {
 
 void GpsScanner::populate(Position* pos) {
 	// Populate pos with the current values found in gps_data_t.
-	pos->timestamp = (time_t) gpsdata.fix.time;
+	pos->time = (time_t) gpsdata.fix.time;
 	pos->satellites_used = gpsdata.satellites_used;
 	pos->satellites_known = gpsdata.satellites_visible;
 	//

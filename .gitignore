@@ -2,4 +2,5 @@
 *.out
 *.dat
 *.bin
-
+*.db
+*.exe

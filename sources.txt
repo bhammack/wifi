@@ -6,3 +6,7 @@ Libgps documentation
 
 OUR DEVICE IS /dev/ttyUSB0
 
+
+
+DEPENDENCIES
+	sudo apt-get install sqlite3

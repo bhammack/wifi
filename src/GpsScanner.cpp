@@ -76,6 +76,7 @@ int GpsScanner::scan(Position* pos) {
 			}
 		} else {
 			// Timeout occured. This shouldn't happen!
+			fprintf(stderr, "gps_read(): Timeout occured\n");
 			return -2;
 		}
 	}

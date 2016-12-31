@@ -36,15 +36,16 @@ int scan(const char* iface) {
 		ap_list[i].print();
 	
 	// Create the database writer to output collected data.
-	return 0;
-}
-
-int main(int argc, char** argv) {
-	//printf("scan() returned %d\n", scan("wlan0"));
+	
 	SqlWriter sql;
 	sql.open("test.db");
 	sql.write(&pos, &ap_list);
 	sql.close();
 	
+	return 0;
+}
+
+int main(int argc, char** argv) {
+	printf("scan() returned %d\n", scan("wlan0"));
 	return 0;
 }

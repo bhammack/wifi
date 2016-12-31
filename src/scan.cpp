@@ -1,11 +1,11 @@
 #include "WifiScanner.cpp"
 #include "AccessPoint.cpp"
 #include "GpsScanner.cpp"
+//#include "SqlWriter.cpp"
 #include <vector>
 
 // sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
-
-int main(int argc, char** argv) {
+int scan(const char* iface) {
 	WifiScanner wifi;
 	GpsScanner gps;
 	Position pos;
@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 	std::vector<AccessPoint> ap_list;
 	
 	// Scanning for Wifi hotspots.
-	wifi.scan("wlan0");
+	wifi.scan(iface);
 	builder.set_range(wifi.get_range());
 	iw_event* iwe;
 	while ((iwe = wifi.get_event()) != NULL) {
@@ -34,6 +34,14 @@ int main(int argc, char** argv) {
 	pos.print();
 	for (unsigned int i = 0; i < ap_list.size(); i++)
 		ap_list[i].print();
+	return 0;
+}
+
+int main(int argc, char** argv) {
+	//printf("scan() returned %d\n", scan("wlan0"));
+	
+	
+	
 	
 	
 	

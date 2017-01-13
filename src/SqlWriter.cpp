@@ -78,14 +78,14 @@ int SqlWriter::open(const char* fname){
 		fprintf(stderr, "Creation of schema failed: %s\n", sqlite3_errmsg(db));
 		return 1;
 	}
-	fprintf(stdout, "[SqlWriter]: %s is ready for use!\n", filename);
+	fprintf(stdout, "[SqlWriter]: Opening database file <%s>\n", filename);
 	return 0;
 };
 
 
 void SqlWriter::close() {
 	sqlite3_close(db);
-	fprintf(stdout, "[SqlWriter]: %s has been closed.\n", this->filename);
+	fprintf(stdout, "[SqlWriter]: Closing database file <%s>\n", this->filename);
 }
 /*
 static int callback(void *not_used, int argc, char** argv, char** col_name) {
@@ -126,9 +126,9 @@ int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
 		
 		// We've got a router on the hook. If it's new, insert it.
 		if (mac_exists) {
-			printf("[SqlWriter]: Old MAC %s already exists...\n", ap.mac);
+			//printf("[SqlWriter]: Old MAC %s already exists...\n", ap.mac);
 		} else {
-			printf("[SqlWriter]: New MAC %s found! Adding...\n", ap.mac);
+			printf("[SqlWriter]: New router <%s> discovered!\n", ap.essid);
 			// MAC doesn't exist in the database. Add it.
 			q << "INSERT INTO routers VALUES(";
 			q << "\"" << ap.mac << "\", \"" << ap.essid << "\",";

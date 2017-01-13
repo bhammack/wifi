@@ -55,12 +55,12 @@ int GpsScanner::scan(Position* pos) {
 		return -1;
 	}
 	gps_stream(&gpsdata, WATCH_ENABLE | WATCH_JSON, NULL);
+	char status = 'n';
 	while (scanning) {
 		if (gps_waiting(&gpsdata, 2000000)) {
 			if ((rv  = gps_read(&gpsdata)) <= 0) {
 				fprintf(stderr, "gps_read(): Data not available...\n");
-			} 
-			else {
+			} else {
 				// We've got gpsdata. Verify that it's a fix on our location.
 				if (
 				(gpsdata.status == STATUS_FIX) && 
@@ -71,7 +71,10 @@ int GpsScanner::scan(Position* pos) {
 						populate(pos);
 				} else {
 					// The gpsdata doesn't contain anything meaningful, yet.
-					printf("[GpsScanner]: Waiting for a location lock...\n");
+					if (status == 'n') {
+						printf("[GpsScanner]: Getting a fix on the current position...\n");
+						status = 'u';
+					}
 				}
 			}
 		} else {

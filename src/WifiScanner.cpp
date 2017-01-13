@@ -66,7 +66,7 @@ int WifiScanner::scan(const char* iface) {
         exit(1);
         // If this throws "Operation not permitted", run as sudo or su.
     }
-    fprintf(stdout, "Scan initiated...\n");
+    fprintf(stdout, "[WifiScanner]: Scan initiated...\n");
     request.u.data.pointer = (char*) buffer;
     request.u.data.flags = 0;
     request.u.data.length = sizeof(buffer);

@@ -71,7 +71,7 @@ int GpsScanner::scan(Position* pos) {
 						populate(pos);
 				} else {
 					// The gpsdata doesn't contain anything meaningful, yet.
-					printf("Waiting for a location lock...\n");
+					printf("[GpsScanner]: Waiting for a location lock...\n");
 				}
 			}
 		} else {

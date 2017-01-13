@@ -4,6 +4,9 @@ Libgps documentation
 	http://www.catb.org/gpsd/client-howto.html
 	https://fossies.org/dox/gpsd-3.16/gps_8h_source.html
 
+Determining the hotspot location
+	http://www.geo.mtu.edu/UPSeis/locating.html
+
 OUR DEVICE IS /dev/ttyUSB0
 
 

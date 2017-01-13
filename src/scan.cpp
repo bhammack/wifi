@@ -31,9 +31,9 @@ int scan(const char* iface) {
 	}
 	
 	// Print the results to stdout.
-	pos.print();
-	for (unsigned int i = 0; i < ap_list.size(); i++)
-		ap_list[i].print();
+	//pos.print();
+	//for (unsigned int i = 0; i < ap_list.size(); i++)
+	//	ap_list[i].print();
 	
 	// Create the database writer to output collected data.
 	

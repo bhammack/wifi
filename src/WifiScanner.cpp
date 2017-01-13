@@ -76,7 +76,7 @@ int WifiScanner::scan(const char* iface) {
         // Keep sending SIOCGIWSCAN to the socket to request scan results.
         if (iw_get_ext(sockfd, iface, SIOCGIWSCAN, &request) < 0) {
             if (errno == EAGAIN) {
-                fprintf(stderr, "%s in use...\n", iface);
+                fprintf(stderr, "[WifiScanner]: Interface %s in use...\n", iface);
                 continue;
             } else if (errno == E2BIG) {
                 fprintf(stderr, "buffer too small!\n");

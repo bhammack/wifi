@@ -52,7 +52,7 @@ int SqlWriter::open(const char* fname){
 	filename = fname;
 	rv = sqlite3_open(filename, &db);
 	if (rv) {
-		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "open(): can't open database: %s\n", sqlite3_errmsg(db));
 		return 1;
 	}
 	// database must have opened successfully.
@@ -102,9 +102,7 @@ static int exists_callback(void* mac_address, int argc, char** argv, char** col_
 }
 
 
-int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
-	fprintf(stdout, "Attempting to write to the database...\n");
-	
+int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {	
 	// Writing to the database will be doine with only one sqlite3_exec() command.
 	std::ostringstream q; // queries. All executed at once.
 

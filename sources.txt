@@ -6,10 +6,10 @@ Libgps documentation
 
 Determining the hotspot location
 	http://www.geo.mtu.edu/UPSeis/locating.html
+	NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
+	Is there a way I can convert S:N to a linear magnitude of signal strength?
+
 
 OUR DEVICE IS /dev/ttyUSB0
-
-
-
 DEPENDENCIES
 	sudo apt-get install sqlite3

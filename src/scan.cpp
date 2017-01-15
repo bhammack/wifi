@@ -26,17 +26,11 @@ int scan(const char* iface) {
 	// Poll gpsd for the current position.
 	int rv;
 	if ((rv = gps.scan(&pos)) < 0) {
-		// error gps scan didn't work.
+		// error gps scan didn't work. NOT GOOD!
 		return 1;
 	}
 	
-	// Print the results to stdout.
-	//pos.print();
-	//for (unsigned int i = 0; i < ap_list.size(); i++)
-	//	ap_list[i].print();
-	
 	// Create the database writer to output collected data.
-	
 	SqlWriter sql;
 	sql.open("test.db");
 	sql.write(&pos, &ap_list);
@@ -46,6 +40,10 @@ int scan(const char* iface) {
 }
 
 int main(int argc, char** argv) {
-	printf("scan() returned %d\n", scan("wlan1"));
+	//printf("scan() returned %d\n", scan("wlan1"));
+	int rv = scan("wlan1");
+	while (rv == 0)
+		rv = scan("wlan1");
+	
 	return 0;
 }

@@ -1,0 +1,19 @@
+Libgps documentation
+	http://www.catb.org/gpsd/libgps.html
+	https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
+	http://www.catb.org/gpsd/client-howto.html
+	https://fossies.org/dox/gpsd-3.16/gps_8h_source.html
+
+Determining the hotspot location
+	http://www.geo.mtu.edu/UPSeis/locating.html
+	NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
+	Is there a way I can convert S:N to a linear magnitude of signal strength?
+
+Hosting an access point on the Pi via wlan1 interface
+	http://elinux.org/RPI-Wireless-Hotspot
+	This would be very helpful for making a maps like interface
+
+
+OUR DEVICE IS /dev/ttyUSB0
+DEPENDENCIES
+	sudo apt-get install sqlite3

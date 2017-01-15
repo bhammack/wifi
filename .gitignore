@@ -1,0 +1,6 @@
+*.o
+*.out
+*.dat
+*.bin
+*.db
+*.exe

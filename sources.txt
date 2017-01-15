@@ -9,6 +9,10 @@ Determining the hotspot location
 	NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
 	Is there a way I can convert S:N to a linear magnitude of signal strength?
 
+Hosting an access point on the Pi via wlan1 interface
+	http://elinux.org/RPI-Wireless-Hotspot
+	This would be very helpful for making a maps like interface
+
 
 OUR DEVICE IS /dev/ttyUSB0
 DEPENDENCIES

@@ -1,7 +1,7 @@
 #include <gps.h>
 #include <time.h>
 #include <cmath>
-
+#define TIMEOUT 2000000
 
 // Pretty much a straight C++ copy of the gps_fix_t struct, with extra bells and whistles.
 class Position {
@@ -52,14 +52,16 @@ int GpsScanner::scan(Position* pos) {
 	int scanning = 1;
 	if ((rv = gps_open("localhost", "2947", &gpsdata)) < 0) {
 		fprintf(stderr, "gps_open(): Error\n");
+		fprintf(stderr, "hint: sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock\n");
 		return -1;
 	}
 	gps_stream(&gpsdata, WATCH_ENABLE | WATCH_JSON, NULL);
 	char status = 'n';
 	while (scanning) {
-		if (gps_waiting(&gpsdata, 2000000)) {
+		if (gps_waiting(&gpsdata, TIMEOUT)) {
 			if ((rv  = gps_read(&gpsdata)) <= 0) {
 				fprintf(stderr, "gps_read(): Data not available...\n");
+				fprintf(stderr, "try moving somewhere outdoors?\n");
 			} else {
 				// We've got gpsdata. Verify that it's a fix on our location.
 				if (

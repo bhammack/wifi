@@ -64,6 +64,8 @@ int SqlWriter::open(const char* fname){
 	); CREATE TABLE IF NOT EXISTS routers(									\
 		mac 		CHARACTER(17) PRIMARY KEY UNIQUE, 						\
 		bssid 		VARCHAR(32),											\
+		frequency	REAL,													\
+		channel		INTEGER,												\
 		latitude 	REAL,													\
 		longitude 	REAL													\
 	); CREATE TABLE IF NOT EXISTS data(										\
@@ -132,6 +134,7 @@ int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
 			// MAC doesn't exist in the database. Add it.
 			q << "INSERT INTO routers VALUES(";
 			q << "\"" << ap.mac << "\", \"" << ap.essid << "\",";
+			q << ap.frequency << ", " << ap.channel << ", ";
 			q << 0 << "," << 0 << ");"; // lat and lng estimiates init to 0's.
 		}
 		

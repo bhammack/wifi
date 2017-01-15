@@ -52,3 +52,16 @@ Progress:
 	instance of the mac address :: ssid relationship. However, flat files will allow me to remove the
 	dependency on SQLite, which is advantageous for creating an expanding codebase. Or, heh, I could just
 	implement both, and see which one I like best. I'll likely go this approach.
+	
+	3. Completed. I decided to use Sqlite3 as the current data storage for the project. Databases are inherently
+	a more elegant solution than dumping to flat files. This also allows me to maintain the estimations for
+	triangulation within the database itself, encapsualting all of the data to one place.
+	
+	4. Completed. This was done using hostapd. The Raspberry Pi 3 has an onboard wifi dongle (tied to interface
+	wlan0) which is used for communicating with the internet/local network. The additional, long-range dongle
+	I purchased (tied to interface wlan1), is used for scanning and self-hosting as an access point.
+	Also conviently, this is a smart technique. As wlan1 issues an interrupt to scan, the wlan1 hosting is brought
+	offline. Therefore, the raspberry pi never scans it's own access point, which saves me from writing code
+	to solve a dumb one-off case.
+	
+	5. In development.

@@ -5,6 +5,7 @@ Components this project will require:
 		- https://www.aircrack-ng.org/doku.php?id=airodump-ng
 		* http://stackoverflow.com/questions/400240/how-can-i-get-a-list-of-available-wireless-networks-on-linux
 		* https://github.com/thodg/wifi/blob/master/libwifi/scan.c
+	
 	There aren't any bindings for airodump-ng (the classic 80211 packet sniffer).
 	However, the application itself is written in C. This could be useful.
 	The IOctl link only works on an already-connected interface. Not what I'm looking for.
@@ -13,28 +14,26 @@ Components this project will require:
 
 	2. GPS module. Necessary to get the current position.
 		- The "gpsd" daemon seems to be the UNIX de-facto standard for GPS communication. 
-		- https://en.wikipedia.org/wiki/Gpsd
-		- https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
+		* https://en.wikipedia.org/wiki/Gpsd
 		- THE DEVICE IN USE FOR GPS IS /dev/ttyUSB0!!!!!
-		- sudo apt-get install:
-			gpsd, gpsd-clients, python-gps, libgps-dev
+		> sudo apt-get install gpsd, gpsd-clients, python-gps, libgps-dev
+		* http://www.catb.org/gpsd/libgps.html
+		* https://learn.adafruit.com/adafruit-ultimate-gps-hat-for-raspberry-pi/use-gpsd
+		* http://www.catb.org/gpsd/client-howto.html
+		* https://fossies.org/dox/gpsd-3.16/gps_8h_source.html
 	
 	3. SQL instance. Will likely use sqlite3, cause it's just fantastic.
-		- https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
-		- sudo apt-get install:
-			sqlite3, libsqlite3-dev
+		* https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
+		> sudo apt-get install sqlite3, libsqlite3-dev
  
 	4. Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
-		- I've done this before with the bustracker program (or was it Leaflet.js?). Either way...
-		- https://developers.google.com/maps/
-		- http://leafletjs.com/
+		- This will be done by hosting the server on wlan1, the extra raspberry pi interface!
+		* http://elinux.org/RPI-Wireless-Hotspot
   
-	5. Calculator program. Something to translate the data points we collect to estimated coordaintes.
-		- Read this:
-		- http://www.javawa.nl/coordcalc_en.html
-		
-	6. A map interface or API. Or, depositing our estimated coordinates to a KML location file.
-	
+	5. Determining the hotspot locations.
+		* http://www.geo.mtu.edu/UPSeis/locating.html
+		- NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
+		- Is there a way I can convert S:N to a linear magnitude of signal strength?	
 	
 Progress:
 	1. Completed. Using IOctl to communicate with the wifi driver. I have developed a C++ wrapper;

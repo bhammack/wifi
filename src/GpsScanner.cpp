@@ -1,7 +1,7 @@
 #include <gps.h>
 #include <time.h>
 #include <cmath>
-#define TIMEOUT 2000000
+#define TIMEOUT 3000000 // microseconds
 
 // Pretty much a straight C++ copy of the gps_fix_t struct, with extra bells and whistles.
 class Position {

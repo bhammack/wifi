@@ -26,9 +26,10 @@ Components this project will require:
 		* https://www.tutorialspoint.com/sqlite/sqlite_c_cpp.htm
 		> sudo apt-get install sqlite3, libsqlite3-dev
  
-	4. Webserver. Not necessary, but useful for hosting a custom google maps, showing locations.
+	4. Self-hosted webserver. Useful for offline management, maps interface.
 		- This will be done by hosting the server on wlan1, the extra raspberry pi interface!
 		* http://elinux.org/RPI-Wireless-Hotspot
+		> sudo apt-get install hostapd udhcpd
   
 	5. Determining the hotspot locations.
 		* http://www.geo.mtu.edu/UPSeis/locating.html

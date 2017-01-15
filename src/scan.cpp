@@ -11,7 +11,7 @@ int scan(const char* iface) {
 	Position pos;
 	AccessPointBuilder builder;
 	std::vector<AccessPoint> ap_list;
-	
+
 	// Scanning for Wifi hotspots.
 	wifi.scan(iface);
 	builder.set_range(wifi.get_range());
@@ -29,13 +29,18 @@ int scan(const char* iface) {
 		// error gps scan didn't work. NOT GOOD!
 		return 1;
 	}
-	
+	/*
+	for (unsigned int i = 0; i < ap_list.size(); i++) {
+		ap_list.at(i).print();
+	}
+	*/
+
 	// Create the database writer to output collected data.
 	SqlWriter sql;
 	sql.open("test.db");
 	sql.write(&pos, &ap_list);
 	sql.close();
-	
+
 	return 0;
 }
 
@@ -44,6 +49,5 @@ int main(int argc, char** argv) {
 	int rv = scan("wlan1");
 	while (rv == 0)
 		rv = scan("wlan1");
-	
 	return 0;
 }

@@ -15,7 +15,7 @@ scans(
 routers(
 	mac 		CHARACTER(17) PRIMARY KEY, 
 	bssid 		VARCHAR(32)
-); 
+);
 // also encryption information once I can get it.
 // also latitude and longitude estimates.
 
@@ -43,9 +43,6 @@ class SqlWriter {
 		char* errmsg;
 		sqlite3* db;
 		int rv;
-	
-	
-	
 };
 
 int SqlWriter::open(const char* fname){
@@ -56,24 +53,25 @@ int SqlWriter::open(const char* fname){
 		return 1;
 	}
 	// database must have opened successfully.
-	
-	const char* setup_schema = "CREATE TABLE IF NOT EXISTS scans(			\
-		time 		INTEGER PRIMARY KEY NOT NULL, 							\
-		latitude 	REAL NOT NULL, 											\
-		longitude 	REAL NOT NULL											\
-	); CREATE TABLE IF NOT EXISTS routers(									\
-		mac 		CHARACTER(17) PRIMARY KEY UNIQUE, 						\
-		bssid 		VARCHAR(32),											\
+
+	const char* setup_schema = "CREATE TABLE IF NOT EXISTS scans(									\
+		time 		INTEGER PRIMARY KEY NOT NULL, 										\
+		latitude 	REAL NOT NULL, 												\
+		longitude 	REAL NOT NULL												\
+	); CREATE TABLE IF NOT EXISTS routers(												\
+		mac 		CHARACTER(17) PRIMARY KEY UNIQUE, 									\
+		bssid 		VARCHAR(32),												\
 		frequency	REAL,													\
 		channel		INTEGER,												\
 		latitude 	REAL,													\
 		longitude 	REAL													\
-	); CREATE TABLE IF NOT EXISTS data(										\
+	); CREATE TABLE IF NOT EXISTS data(												\
 		time 		INTEGER, 												\
-		mac 		CHARACTER(17), 											\
+		mac 		CHARACTER(17), 												\
 		signal 		INTEGER, 												\
 		noise 		INTEGER,												\
-		FOREIGN KEY(time) REFERENCES scans(time)							\
+		quality		REAL,													\
+		FOREIGN KEY(time) REFERENCES scans(time)										\
 	);";
 	rv = sqlite3_exec(db, setup_schema, NULL, 0, NULL);
 	if (rv != SQLITE_OK) {
@@ -141,7 +139,8 @@ int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
 		// Insert the new data entries into the data table.
 		q << "INSERT INTO data VALUES(";
 		q << pos->time << "," << "\"" << ap.mac << "\"" << ",";
-		q << ap.signal << "," << ap.noise << ");";
+		q << ap.signal << "," << ap.noise << ",";
+		q << ap.quality << ");";
 	}
 	
 	// Execute the query formed from the stringstream.

@@ -54,24 +54,32 @@ int SqlWriter::open(const char* fname){
 	}
 	// database must have opened successfully.
 
-	const char* setup_schema = "CREATE TABLE IF NOT EXISTS scans(									\
-		time 		INTEGER PRIMARY KEY NOT NULL, 										\
-		latitude 	REAL NOT NULL, 												\
-		longitude 	REAL NOT NULL												\
-	); CREATE TABLE IF NOT EXISTS routers(												\
-		mac 		CHARACTER(17) PRIMARY KEY UNIQUE, 									\
-		bssid 		VARCHAR(32),												\
-		frequency	REAL,													\
-		channel		INTEGER,												\
-		latitude 	REAL,													\
-		longitude 	REAL													\
-	); CREATE TABLE IF NOT EXISTS data(												\
-		time 		INTEGER, 												\
-		mac 		CHARACTER(17), 												\
-		signal 		INTEGER, 												\
-		noise 		INTEGER,												\
-		quality		REAL,													\
-		FOREIGN KEY(time) REFERENCES scans(time)										\
+	const char* setup_schema = "\
+	CREATE TABLE IF NOT EXISTS scans(\
+		time 				INTEGER PRIMARY KEY NOT NULL,\
+		scanner				CHARACTER(17) PRIMARY KEY NOT NULL,\
+		latitude 			REAL NOT NULL,\
+		longitude 			REAL NOT NULL,\
+		latitude_error 		REAL NOT NULL,\
+		longitude_error 	REAL NOT NULL\
+	);\
+	CREATE TABLE IF NOT EXISTS routers(\
+		mac 				CHARACTER(17) PRIMARY KEY UNIQUE,\
+		bssid 				VARCHAR(32),\
+		frequency			REAL,\
+		channel				INTEGER,\
+		latitude 			REAL,\
+		longitude 			REAL\
+	);\
+	CREATE TABLE IF NOT EXISTS data(\
+		time 				INTEGER,\
+		scanner				CHARACTER(17),\
+		mac 				CHARACTER(17),\
+		signal 				INTEGER,\
+		noise 				INTEGER,\
+		quality				REAL,\
+		FOREIGN KEY(time) REFERENCES scans(time),\
+		FOREIGN KEY(scanner) REFERENCES scans(scanner)\
 	);";
 	rv = sqlite3_exec(db, setup_schema, NULL, 0, NULL);
 	if (rv != SQLITE_OK) {

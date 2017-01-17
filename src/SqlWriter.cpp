@@ -38,32 +38,30 @@ int SqlWriter::open(const char* fname){
 
 	const char* schema = "\
 	CREATE TABLE IF NOT EXISTS scans(\
+		id					INTEGER PRIMARY KEY,\
 		time 				INTEGER NOT NULL,\
 		iface				CHARACTER(17) NOT NULL,\
 		latitude 			REAL NOT NULL,\
 		longitude 			REAL NOT NULL,\
 		latitude_error 		REAL NOT NULL,\
-		longitude_error 	REAL NOT NULL,\
-		PRIMARY KEY (time, iface)\
+		longitude_error 	REAL NOT NULL\
 	);\
 	CREATE TABLE IF NOT EXISTS routers(\
 		mac 				CHARACTER(17) PRIMARY KEY UNIQUE,\
 		bssid 				VARCHAR(32),\
-		frequency			REAL,\
-		channel				INTEGER,\
+		frequency			REAL NOT NULL,\
+		channel				INTEGER NOT NULL,\
 		latitude 			REAL,\
 		longitude 			REAL,\
 		radius				REAL\
 	);\
 	CREATE TABLE IF NOT EXISTS data(\
-		time 				INTEGER,\
-		iface				CHARACTER(17),\
+		scan_id				INTEGER NOT NULL,\
 		mac 				CHARACTER(17),\
 		signal 				INTEGER,\
 		noise 				INTEGER,\
 		quality				REAL,\
-		FOREIGN KEY(time) REFERENCES scans(time),\
-		FOREIGN KEY(iface) REFERENCES scans(iface)\
+		FOREIGN KEY(scan_id) REFERENCES scans(id)\
 	);";
 	// get the row id from scans.
 	// make a column in data for the row id of scans as a foreign key.
@@ -108,7 +106,10 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 
 	// INSERT INTO scans VALUES ()
 	// First create the query to insert into scans.
+	// TODO: This is the "bad" way to insert values. 
+		// You should be referencing the row name.
 	q << "INSERT INTO scans VALUES(";
+	q << "NULL" << ",";
 	q << pos->time << ",";
 	q << "\"" << iface_addr << "\"" << ",";
 	q << pos->latitude << ",";
@@ -117,8 +118,15 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 	q << pos->longitude_dev << "";
 	q << ");";
 	
+	std::string rid_query;
+	rid_query = "SELECT last_insert_rowid();";
+	rv = sqlite3
+	
 	// To build the one query we'll execute, iterate over all ap's found.
 	std::string ap_query;
+	
+	
+	
 	for (unsigned int i = 0; i < ap_list->size(); i++) {
 		AccessPoint ap = ap_list->at(i);
 		ap_query = "SELECT EXISTS(SELECT 1 FROM routers WHERE mac=\"" + std::string(ap.mac) + "\" LIMIT 1);";
@@ -149,6 +157,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		
 		// Insert the new data entries into the data table.
 		q << "INSERT INTO data VALUES(";
+		
 		q << pos->time << "," ;
 		q << "\"" << iface_addr << "\"" << ",";
 		q << "\"" << ap.mac << "\"" << ",";

@@ -25,7 +25,23 @@ class WifiScanner {
         int scan(const char* iface);
         iw_event* get_event();
         iw_range* get_range();
+		void get_iface_addr(const char* iface);
 };
+
+// Gets the hardware MAC address associated with the network interface.
+void WifiScanner::get_iface_addr(const char* iface) {
+	int s;
+	struct ifreq buffer;
+	s = socket(PF_INET, SOCK_DGRAM, 0);
+	memset(&buffer, 0x00, sizeof(buffer));
+	strcpy(buffer.ifr_name, "eth0");
+	ioctl(s, SIOCGIFHWADDR, &buffer);
+	close(s);
+	for(int i = 0; i < 6; i++ )
+		printf("%.2X ", (unsigned char)buffer.ifr_hwaddr.sa_data[i]);
+	printf("\n");
+}
+
 
 
 // Pop an event reference from the event stream.

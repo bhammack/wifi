@@ -86,10 +86,15 @@ int WifiScanner::scan(const char* iface) {
     // Request a socket to communicate with the kernel via ioctl().
     int sockfd = iw_sockets_open();
     // Send the SIOCSIWSCAN to the new socket to initiate scan call.
-    if (iw_set_ext(sockfd, iface, SIOCSIWSCAN, &request) < 0) {
-        perror("iw_set_ext()");
+	int rv;
+    if ((rv = iw_set_ext(sockfd, iface, SIOCSIWSCAN, &request)) < 0) {
+        fprintf(stderr, "Error: %d\n", rv);
+		// http://man7.org/linux/man-pages/man3/errno.3.html
+		perror("iw_set_ext()");
         exit(1);
         // If this throws "Operation not permitted", run as sudo or su.
+		// If this still throws "Operation not permitted", do:
+			// ifconfig wlan1 down && ifconfig wlan1 up
     }
     fprintf(stdout, "[WifiScanner]: Scan initiated...\n");
     request.u.data.pointer = (char*) buffer;

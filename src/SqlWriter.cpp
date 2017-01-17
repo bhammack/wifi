@@ -38,12 +38,13 @@ int SqlWriter::open(const char* fname){
 
 	const char* schema = "\
 	CREATE TABLE IF NOT EXISTS scans(\
-		time 				INTEGER PRIMARY KEY NOT NULL,\
-		iface				CHARACTER(17) PRIMARY KEY NOT NULL,\
+		time 				INTEGER NOT NULL,\
+		iface				CHARACTER(17) NOT NULL,\
 		latitude 			REAL NOT NULL,\
 		longitude 			REAL NOT NULL,\
 		latitude_error 		REAL NOT NULL,\
-		longitude_error 	REAL NOT NULL\
+		longitude_error 	REAL NOT NULL,\
+		PRIMARY KEY (time, iface)\
 	);\
 	CREATE TABLE IF NOT EXISTS routers(\
 		mac 				CHARACTER(17) PRIMARY KEY UNIQUE,\
@@ -64,6 +65,13 @@ int SqlWriter::open(const char* fname){
 		FOREIGN KEY(time) REFERENCES scans(time),\
 		FOREIGN KEY(iface) REFERENCES scans(iface)\
 	);";
+	// get the row id from scans.
+	// make a column in data for the row id of scans as a foreign key.
+	
+	
+	
+	
+	
 	rv = sqlite3_exec(db, schema, NULL, 0, NULL);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "Creation of schema failed: %s\n", sqlite3_errmsg(db));

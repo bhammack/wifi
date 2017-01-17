@@ -13,7 +13,7 @@ int scan(const char* iface) {
 	std::vector<AccessPoint> ap_list;
 
 	// Scanning for Wifi hotspots.
-	wifi.get_iface_addr(iface);
+	char* hw_addr = wifi.get_iface_addr(iface);
 	wifi.scan(iface);
 	builder.set_range(wifi.get_range());
 	iw_event* iwe;
@@ -34,7 +34,7 @@ int scan(const char* iface) {
 	// Create the database writer to output collected data.
 	SqlWriter sql;
 	sql.open("test.db");
-	sql.write(&pos, &ap_list);
+	sql.write(hw_addr, &pos, &ap_list);
 	sql.close();
 
 	return 0;

@@ -5,31 +5,13 @@
 
 /* Database schema:
 -------------------------------------------------------------------------------
-scans(
-	scan_id 	INTEGER PRIMARY KEY AUTOINCREMENT, 
-	time 		INTEGER, 
-	latitude 	REAL, 
-	longitude 	REAL
-);
-
-routers(
-	mac 		CHARACTER(17) PRIMARY KEY, 
-	bssid 		VARCHAR(32)
-);
-// also encryption information once I can get it.
-// also latitude and longitude estimates.
-
-data(
-	scan_id 	INTEGER, 
-	mac 		CHARACTER(17), 
-	signal 		INTEGER, 
-	noise 		INTEGER,
-	FOREIGN KEY(scan_id) REFERENCES scans(scan_id)
-);
+	see below...
 -------------------------------------------------------------------------------
 */
 
-
+// TODO: Make a querybuilder class. It modifies from ostringstream, but is
+// customized to produce SQLite3 queries. 
+// for instance, q << "\"" << some_string << "\"" << "," is tedious.
 
 
 // Class written to encapsualte dumping out data to a sqlite database instance.
@@ -37,7 +19,7 @@ class SqlWriter {
 	public:
 		int open(const char* filename);
 		void close();
-		int write(Position* pos, std::vector<AccessPoint>* ap_list);
+		int write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_list);
 	private:
 		const char* filename;
 		char* errmsg;
@@ -54,10 +36,10 @@ int SqlWriter::open(const char* fname){
 	}
 	// database must have opened successfully.
 
-	const char* setup_schema = "\
+	const char* schema = "\
 	CREATE TABLE IF NOT EXISTS scans(\
 		time 				INTEGER PRIMARY KEY NOT NULL,\
-		scanner				CHARACTER(17) PRIMARY KEY NOT NULL,\
+		iface				CHARACTER(17) PRIMARY KEY NOT NULL,\
 		latitude 			REAL NOT NULL,\
 		longitude 			REAL NOT NULL,\
 		latitude_error 		REAL NOT NULL,\
@@ -69,19 +51,20 @@ int SqlWriter::open(const char* fname){
 		frequency			REAL,\
 		channel				INTEGER,\
 		latitude 			REAL,\
-		longitude 			REAL\
+		longitude 			REAL,\
+		radius				REAL\
 	);\
 	CREATE TABLE IF NOT EXISTS data(\
 		time 				INTEGER,\
-		scanner				CHARACTER(17),\
+		iface				CHARACTER(17),\
 		mac 				CHARACTER(17),\
 		signal 				INTEGER,\
 		noise 				INTEGER,\
 		quality				REAL,\
 		FOREIGN KEY(time) REFERENCES scans(time),\
-		FOREIGN KEY(scanner) REFERENCES scans(scanner)\
+		FOREIGN KEY(iface) REFERENCES scans(iface)\
 	);";
-	rv = sqlite3_exec(db, setup_schema, NULL, 0, NULL);
+	rv = sqlite3_exec(db, schema, NULL, 0, NULL);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "Creation of schema failed: %s\n", sqlite3_errmsg(db));
 		return 1;
@@ -110,14 +93,21 @@ static int exists_callback(void* mac_address, int argc, char** argv, char** col_
 }
 
 
-int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {	
+int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_list) {	
 	// Writing to the database will be doine with only one sqlite3_exec() command.
+	std::string iface_addr = std::string(hw_addr); 
 	std::ostringstream q; // queries. All executed at once.
 
 	// INSERT INTO scans VALUES ()
 	// First create the query to insert into scans.
 	q << "INSERT INTO scans VALUES(";
-	q << pos->time << "," << pos->latitude << "," << pos->longitude << ");";	
+	q << pos->time << ",";
+	q << "\"" << iface_addr << "\"" << ",";
+	q << pos->latitude << ",";
+	q << pos->longitude << ",";
+	q << pos->latitude_dev << ",";
+	q << pos->longitude_dev << "";
+	q << ");";
 	
 	// To build the one query we'll execute, iterate over all ap's found.
 	std::string ap_query;
@@ -139,16 +129,25 @@ int SqlWriter::write(Position* pos, std::vector<AccessPoint>* ap_list) {
 			printf("[SqlWriter]: New router <%s> discovered!\n", ap.essid);
 			// MAC doesn't exist in the database. Add it.
 			q << "INSERT INTO routers VALUES(";
-			q << "\"" << ap.mac << "\", \"" << ap.essid << "\",";
-			q << ap.frequency << ", " << ap.channel << ", ";
-			q << 0 << "," << 0 << ");"; // lat and lng estimiates init to 0's.
+			q << "\"" << ap.mac << "\"" << ",";
+			q << "\"" << ap.essid << "\"" << ",";
+			q << ap.frequency << ",";
+			q << ap.channel << ",";
+			q << 0 << ",";
+			q << 0 << ",";
+			q << 0 << "";
+			q << ");"; // lat and lng estimiates init to 0's.
 		}
 		
 		// Insert the new data entries into the data table.
 		q << "INSERT INTO data VALUES(";
-		q << pos->time << "," << "\"" << ap.mac << "\"" << ",";
-		q << ap.signal << "," << ap.noise << ",";
-		q << ap.quality << ");";
+		q << pos->time << "," ;
+		q << "\"" << iface_addr << "\"" << ",";
+		q << "\"" << ap.mac << "\"" << ",";
+		q << ap.signal << ","; 
+		q << ap.noise << ",";
+		q << ap.quality << "";
+		q << ");";
 	}
 	
 	// Execute the query formed from the stringstream.

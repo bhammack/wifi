@@ -7,8 +7,9 @@
 
 /*
 	sudo apt-get install libiw-dev
-	TODO: The difference between bssid and essid is that bssid usually corresponds
-	with the MAC address of the router. Essid is the name of a signal broadcasting from an AP.
+	TODO: The difference between bssid and essid is that bssid usually 
+	corresponds with the MAC address of the router. 
+	Essid is the name of a signal broadcasting from an AP.
 	An AP can broadcast multiple SSID's (UF's network is ESSID, mine is BSSID).
 	TODO: Investigate RSSI -- measure of signal strength.
 */
@@ -21,27 +22,35 @@ class WifiScanner {
         iw_range range;
         int has_range;
         iw_event iwe;
+		char hw_addr[17];
     public:
         int scan(const char* iface);
         iw_event* get_event();
         iw_range* get_range();
-		void get_iface_addr(const char* iface);
+		char* get_iface_addr(const char* iface);
 };
 
 // Gets the hardware MAC address associated with the network interface.
-void WifiScanner::get_iface_addr(const char* iface) {
-	int s;
+// TODO: This doesn't need to save the hw address. Pass in an editable reference dude.
+char* WifiScanner::get_iface_addr(const char* iface) {
+	// http://www.linuxquestions.org/questions/programming-9/linux-determining-mac-address-from-c-38217/
 	struct ifreq buffer;
-	s = socket(PF_INET, SOCK_DGRAM, 0);
+	int s = socket(PF_INET, SOCK_DGRAM, 0);
 	memset(&buffer, 0x00, sizeof(buffer));
-	strcpy(buffer.ifr_name, "eth0");
+	strcpy(buffer.ifr_name, iface);
 	ioctl(s, SIOCGIFHWADDR, &buffer);
 	close(s);
-	for(int i = 0; i < 6; i++ )
-		printf("%.2X ", (unsigned char)buffer.ifr_hwaddr.sa_data[i]);
-	printf("\n");
+	//char hw_addr[17];
+	sprintf(hw_addr, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
+		(unsigned char)buffer.ifr_hwaddr.sa_data[0],
+		(unsigned char)buffer.ifr_hwaddr.sa_data[1],
+		(unsigned char)buffer.ifr_hwaddr.sa_data[2],
+		(unsigned char)buffer.ifr_hwaddr.sa_data[3],
+		(unsigned char)buffer.ifr_hwaddr.sa_data[4],
+		(unsigned char)buffer.ifr_hwaddr.sa_data[5]);
+	//printf("%s\n", hw_addr);
+	return hw_addr;
 }
-
 
 
 // Pop an event reference from the event stream.

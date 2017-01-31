@@ -1,0 +1,8 @@
+<01/31/17>
+  - Add hardware receiver's id to the scan table of database. This will allow scalability of the system, as multiple devices can then scan a region and merge their data together.
+  - Record error data from GPSD. Not points, but "region of confidence"
+  - Record error data from Wifi. This will require "calibration"
+  - Consider the power draw for the device. How will it be powered?
+  - What will the user see in the end? What is our deliverable to them?
+  - 802.11b/a/g/n can affect the signal strength. See if you can sniff it out.
+</>

@@ -6,5 +6,10 @@
   - What will the user see in the end? What is our deliverable to them?
   - 802.11b/a/g/n can affect the signal strength. See if you can sniff it out.
   
-  ** Make a Gantt chart detailing progress of the project.
+  ... later that night at the senior project meeting ...
+ 
+  * Make a Gantt chart detailing progress of the project.
+  * Need 5 literature sources for the first presentation.
+  * Don't give a horrible presentation. No pacing, speak slowly. Use your radio voice.
 </>
+

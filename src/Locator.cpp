@@ -152,9 +152,12 @@ static int cb_macs(void* macs_vector, int argc, char** argv, char** col_name) {
 
 // This here is what makes the whole project chooch.
 void Locator::locate_mac(std::string mac) {
-	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, \
+	//std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, \
 	scans.latitude_error, scans.longitude_error, data.signal, data.noise, \
 	data.quality FROM scans, data WHERE scans.id = data.scan_id AND data.mac = '" + mac + "';";
+	
+	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
+	
 	
 	std::vector< std::vector<std::string> > table;
 	rv = sqlite3_exec(db, select_data.c_str(), callback2, &table, &errmsg);

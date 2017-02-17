@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <cmath>
 
+#define PI 3.14159265358979323846
+#define EARTH_RADIUS_KM 6371.0
+
 // http://stackoverflow.com/questions/236129/split-a-string-in-c
 template<typename Out>
 void split(const std::string &s, char delim, Out result) {
@@ -14,17 +17,28 @@ void split(const std::string &s, char delim, Out result) {
         *(result++) = item;
     }
 }
-
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
     split(s, delim, std::back_inserter(elems));
     return elems;
 }
 
+// http://stackoverflow.com/questions/10198985/calculating-the-distance-between-2-latitudes-and-longitudes-that-are-saved-in-a
+double deg2rad(double deg) { return (deg * PI / 180); }
+double rad2deg(double rad) { return (rad * 180 / PI); }
 
-
-
-
+// Haversine formula. Returns the distance in meters.
+double distance(double lat1d, double lon1d, double lat2d, double lon2d) {
+  double lat1r, lon1r, lat2r, lon2r, u, v;
+  lat1r = deg2rad(lat1d);
+  lon1r = deg2rad(lon1d);
+  lat2r = deg2rad(lat2d);
+  lon2r = deg2rad(lon2d);
+  u = sin((lat2r - lat1r)/2);
+  v = sin((lon2r - lon1r)/2);
+  //return 2.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)); // kilometers
+  return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
+}
 
 
 

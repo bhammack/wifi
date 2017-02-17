@@ -36,6 +36,8 @@ Components this project will require:
 		- NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
 		- Is there a way I can convert S:N to a linear magnitude of signal strength?	
 		* https://en.wikipedia.org/wiki/IEEE_802.11 // Propogation distances
+		* http://paulbourke.net/geometry/circlesphere/ // intersection of two circles
+
 
 Progress:
 	1. Completed. Using IOctl to communicate with the wifi driver. I have developed a C++ wrapper;

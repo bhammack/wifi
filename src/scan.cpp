@@ -51,7 +51,7 @@ int scanloop() {
 
 int main(int argc, char** argv) {
 	//printf("scan() returned %d\n", scan("wlan1"));
-	return scanloop();
+	//return scanloop();
 	Locator l;
 	l.open("test.db");
 	l.locate();

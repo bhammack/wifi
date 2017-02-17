@@ -41,6 +41,15 @@ double distance(double lat1d, double lon1d, double lat2d, double lon2d) {
 }
 
 
+// http://rvmiller.com/2013/05/part-1-wifi-based-trilateration-on-android/
+// Based on the equation for free-space path loss; solved for distance in meters.
+double radius(double decibels, double gigahertz) {
+	double megaherts = gigahertz * 1000.0;
+	const double c = 27.55; // magic constant...
+	double exp = (c - (20*log10(megahertz)) + abs(decibels)) / 20.0;
+	return pow(10.0, exp);
+}
+
 
 
 class Locator {

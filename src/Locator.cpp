@@ -7,6 +7,8 @@
 #define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
 
+// String split functions. Might not need them now
+/*
 // http://stackoverflow.com/questions/236129/split-a-string-in-c
 template<typename Out>
 void split(const std::string &s, char delim, Out result) {
@@ -22,33 +24,65 @@ std::vector<std::string> split(const std::string &s, char delim) {
     split(s, delim, std::back_inserter(elems));
     return elems;
 }
+*/
 
-// http://stackoverflow.com/questions/10198985/calculating-the-distance-between-2-latitudes-and-longitudes-that-are-saved-in-a
-double deg2rad(double deg) { return (deg * PI / 180); }
-double rad2deg(double rad) { return (rad * 180 / PI); }
-
-// Haversine formula. Returns the distance in meters.
-double distance(double lat1d, double lon1d, double lat2d, double lon2d) {
-  double lat1r, lon1r, lat2r, lon2r, u, v;
-  lat1r = deg2rad(lat1d);
-  lon1r = deg2rad(lon1d);
-  lat2r = deg2rad(lat2d);
-  lon2r = deg2rad(lon2d);
-  u = sin((lat2r - lat1r)/2);
-  v = sin((lon2r - lon1r)/2);
-  //return 2.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v)); // kilometers
-  return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
-}
 
 
 // http://rvmiller.com/2013/05/part-1-wifi-based-trilateration-on-android/
 // Based on the equation for free-space path loss; solved for distance in meters.
 double radius(double decibels, double gigahertz) {
-	double megaherts = gigahertz * 1000.0;
-	const double c = 27.55; // magic constant...
+	double megahertz = gigahertz * 1000.0;
+	const double c = 27.55; // magic constant... TODO: explain this...
 	double exp = (c - (20*log10(megahertz)) + abs(decibels)) / 20.0;
 	return pow(10.0, exp);
 }
+
+// http://math.stackexchange.com/questions/221881/the-intersection-of-n-disks-circles
+
+// A class for a 2-Dimensional point on Earth surface. A coordinate position.
+class Point {	
+	private:
+		// TODO: Add the def for PI and EARTH_RADIUS_KM here.
+		double deg2rad(double deg) { return (deg * PI / 180); };
+		double rad2deg(double rad) { return (rad * 180 / PI); };
+	public:
+		Point(double lat, double lng) {
+			latitude = lat;
+			longitude = lng;
+		};
+		double latitude;
+		double longitude;
+		// Haversine formula. Distance returned in meters.
+		// http://stackoverflow.com/questions/10198985/calculating-the-distance-between-2-latitudes-and-longitudes-that-are-saved-in-a
+		double distance_to(Point* other) {
+			double lat1r, lon1r, lat2r, lon2r, u, v;
+			lat1r = deg2rad(latitude);
+			lon1r = deg2rad(longitude);
+			lat2r = deg2rad(other->latitude);
+			lon2r = deg2rad(other->longitude);
+			u = sin((lat2r - lat1r)/2);
+			v = sin((lon2r - lon1r)/2);
+			return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
+		};
+};
+
+// A circle. Defined as a point, and a radius.
+class Circle {
+	private:
+		Point center;
+		double radius; // meters
+	public:
+		Circle(double lat, double lng, double rad)
+		: center(lat,lng) {
+			radius = rad;
+		};
+};
+
+
+
+
+
+
 
 
 
@@ -130,9 +164,9 @@ void Locator::locate_mac(std::string mac) {
 		return;
 	}
 	
-	double latitude;
-	double longitude;
-	double radius;
+	//double latitude;
+	//double longitude;
+	//double radius;
 	
 	for (unsigned int i = 0; i < table.size(); i++) {
 		std::vector<std::string>* row = &table.at(i);

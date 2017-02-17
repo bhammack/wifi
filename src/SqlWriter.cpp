@@ -27,7 +27,7 @@ class SqlWriter {
 		int rv;
 };
 
-int SqlWriter::open(const char* fname){
+int SqlWriter::open(const char* fname) {
 	filename = fname;
 	rv = sqlite3_open(filename, &db);
 	if (rv) {

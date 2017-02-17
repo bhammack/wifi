@@ -2,6 +2,7 @@
 #include "AccessPoint.cpp"
 #include "GpsScanner.cpp"
 #include "SqlWriter.cpp"
+#include "Locator.cpp"
 #include <vector>
 
 // sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
@@ -40,10 +41,18 @@ int scan(const char* iface) {
 	return 0;
 }
 
-int main(int argc, char** argv) {
-	//printf("scan() returned %d\n", scan("wlan1"));
+int scanloop() {
 	int rv = scan("wlan1");
 	while (rv == 0)
 		rv = scan("wlan1");
+	return 0;
+}
+
+int main(int argc, char** argv) {
+	//printf("scan() returned %d\n", scan("wlan1"));
+	//return scanloop();
+	Locator l;
+	l.open("test.db");
+	l.locate();
 	return 0;
 }

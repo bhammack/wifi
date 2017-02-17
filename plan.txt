@@ -35,7 +35,8 @@ Components this project will require:
 		* http://www.geo.mtu.edu/UPSeis/locating.html
 		- NOTE: This can work, HOWEVER, signal-noise ratio is LOGRITHMIC, NOT LINEAR!!!
 		- Is there a way I can convert S:N to a linear magnitude of signal strength?	
-	
+		* https://en.wikipedia.org/wiki/IEEE_802.11 // Propogation distances
+
 Progress:
 	1. Completed. Using IOctl to communicate with the wifi driver. I have developed a C++ wrapper;
 	to interface with the IOctl command via iwlib. It returns a stream of wifi events captured from

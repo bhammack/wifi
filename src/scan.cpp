@@ -5,6 +5,7 @@
 #include "Locator.cpp"
 #include <vector>
 
+
 // sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
 int scan(const char* iface) {
 	WifiScanner wifi;
@@ -50,7 +51,7 @@ int scanloop() {
 
 int main(int argc, char** argv) {
 	//printf("scan() returned %d\n", scan("wlan1"));
-	//return scanloop();
+	return scanloop();
 	Locator l;
 	l.open("test.db");
 	l.locate();

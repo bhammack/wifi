@@ -111,9 +111,9 @@ void Locator::locate_mac(std::string mac) {
 	double longitude;
 	double radius;
 	
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		std::vector<std::string>* row = &table.at(i);
-		for (int j = 0; j < row->size(); j++) {
+		for (unsigned int j = 0; j < row->size(); j++) {
 			printf("%s\n", row->at(j).c_str());
 			
 			

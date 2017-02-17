@@ -26,6 +26,8 @@ class AccessPoint {
         int signal;         // dBm
         int noise;          // dBm
         float quality;      // (event->u.qual.qual / range->max_qual.qual)
+		unsigned int bitrate;		// 	highest available bitrate in bits per second.
+		char protocol;		// 'b', 'g', 'n', or other... TODO: this
         int encrypted;      // 1/0
         void print();     // print the ap to stdout.
 };
@@ -39,7 +41,8 @@ void AccessPoint::print() {
     printf("Channel:\t%d\n", channel);
     printf("Signal:\t\t%d\n", signal);
     printf("Noise:\t\t%d\n", noise);
-    printf("Quality:\t%1.3f\n", quality); // TODO: figure out how to format.
+    printf("Quality:\t%1.3f\n", quality);
+	printf("Bitrate:\t%d\n", bitrate);
     printf("Encrypted:\t%d\n", encrypted);
 }
 
@@ -50,16 +53,15 @@ class AccessPointBuilder {
         // Data members.
         AccessPoint _ap;
         struct iw_range* _range;
-        bool _is_built; // measures build progress
-        // Building functions. Each one sets a bit of _progress.
+        bool _is_built;
+		
         void add_mac(iw_event* event);
         void add_essid(iw_event* event);
         void add_freq(iw_event* event);
         void add_quality(iw_event* event);
         void add_encrypted(iw_event* event);
         void add_info(iw_event* event);
-        // can make
-        // two more
+		void add_bitrate(iw_event* event);
         
     public:
         AccessPointBuilder();
@@ -221,6 +223,13 @@ void AccessPointBuilder::add_encrypted(iw_event* event) {
         _ap.encrypted = 1;
 }
 
+// Add the bitrate. Keep the largest one.
+void AccessPointBuilder::add_bitrate(iw_event* event) {
+	unsigned int bitrate = event->u.bitrate.value;
+	if (bitrate > _ap.bitrate)
+		_ap.bitrate = bitrate;
+}
+
 
 // Add an information element. We're looking for specific ones.
 void AccessPointBuilder::add_info(iw_event* event) {
@@ -299,10 +308,11 @@ void AccessPointBuilder::handle(iw_event* event) {
             break;
         
         case SIOCGIWNAME:
-            #ifdef DEBUG
+            // Doesn't seem to regularly occur.
+			#ifdef DEBUG
             printf("SIOCGIWNAME\n");
+			//printf("Protocol:%-1.16s\n", event->u.name);
             #endif
-            //printf("Protocol:%-1.16s\n", event->u.name);
             break;
         
         case IWEVQUAL:
@@ -327,12 +337,12 @@ void AccessPointBuilder::handle(iw_event* event) {
             break;
             
         case SIOCGIWRATE:
-            // Always occurs. Should I capture this though?
+            // Always occurs. Parse this to find 'b', 'n', 'g', etc.
             #ifdef DEBUG
             printf("SIOCGIWRATE\n");
+			printf("	Bit Rate:%d\n", event->u.bitrate.value);
             #endif
-            /*iw_print_bitrate(buffer, event->u.bitrate.value);
-            printf("Bit Rate:%s\n", buffer);*/
+			add_bitrate(event);
             break;
         
         case SIOCGIWMODUL:
@@ -361,10 +371,7 @@ void AccessPointBuilder::handle(iw_event* event) {
             #endif
             add_info(event);
             
-            // Temp
-            //AccessPoint ap = get_ap();
-            //ap.toString();
-            //clear();
+			// TODO: Temporary flag to know that we're done scanning!
 			_is_built = true;
         } break;
             

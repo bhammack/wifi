@@ -1,6 +1,9 @@
 #include <sqlite3.h>
+
 #include <sstream>
 #include <vector>
+#include <utility>
+
 #include <stdlib.h>
 #include <cmath>
 
@@ -49,8 +52,7 @@ class Point {
 		Point(double lat, double lng) 
 		: latitude(lat), longitude(lng) {}
 		
-		double latitude;
-		double longitude;
+		double latitude, longitude;
 		// Haversine formula. Distance returned in meters.
 		// http://stackoverflow.com/questions/10198985/calculating-the-distance-between-2-latitudes-and-longitudes-that-are-saved-in-a
 		double distance_to(const Point& other) const {
@@ -74,38 +76,46 @@ class Circle {
 		Circle(double lat, double lng, double rad)
 		: center(lat,lng), radius(rad) {}
 		
-		
-		int intersects(const Circle& other, Point* p) {
+		bool does_intersect(const Circle& other) {
 			double d = center.distance_to(other.center);
 			if (d > (radius + other.radius)) {
 				// no solutions. circles don't touch.
 				double delta = d - (radius + other.radius);
 				fprintf(stderr, "Point::intersects(): circles are %f meters from intersection\n", delta);
-				return 1;
+				return false;
 			}
 			if (d < abs(radius - other.radius)) {
 				// no solutions. circles coincide.
 				fprintf(stderr, "Point::intersects(): circles coincide\n");
-				return 1;
+				return false;
 			}
 			if (d == 0) {
 				// infinite solutions.
 				fprintf(stderr, "Point::intersects(): infinite solutions\n");
-				return 1;
+				return false;
 			}
+			return true;
+		}
+		
+		
+		// Assumes two circles intersect. Use does_intersect to check this.
+		std::pair<Point,Point> intersects(const Circle& other) {
+			double d = center.distance_to(other.center);
+			
 			double a = ( pow(radius,2) - pow(other.radius,2) + pow(d,2)) / (2 * d);
 			double h = sqrt(pow(radius,2)-pow(a,2));
 			double p2lat = center.latitude + a*(other.center.latitude - center.latitude)/d;
 			double p2lng = center.longitude + a*(other.center.longitude - center.longitude)/d;
 			
-			double p3lng = p2lng + -1*h*(other.center.latitude - center.latitude)/d;
-			double p3lat = p2lat - h*(other.center.longitude - center.longitude)/d;
-			p->latitude = p3lat;
-			p->longitude = p3lng;
+			double p3latA = p2lat - h*(other.center.longitude - center.longitude)/d;
+			double p3lngA = p2lng - h*(other.center.latitude - center.latitude)/d;
 			
-			return 0;
+			double p3latB = p2lat + h*(other.center.longitude - center.longitude)/d;
+			double p3lngB = p2lng + h*(other.center.latitude - center.latitude)/d;
 			
-			//return Point(p3lat, p3lng);
+			Point left(p3latA, p3lngA);
+			Point right(p3latB, p3lngB);
+			return std::make_pair(left, right);
 		};
 		
 };
@@ -218,18 +228,18 @@ void Locator::locate_mac(std::string mac) {
 	
 }
 
-
+// Trilateration will consist of averaging all of the intersecting points for a given MAC.
+// In reality, I might be able to remove half of the points by only considering the
+// midpoint between the two circles (which should result in the same result???)
 void Locator::locate() {
 	Circle x (29.623988, -82.360681, 60.0);
 	Circle y (29.624230, -82.360083, 5.0);
-	Point i (0,0);
-	int retval = x.intersects(y, &i);
-	if (retval == 0) {
-		printf("the isection is at point %f, %f\n", i.latitude, i.longitude);
+	if (x.does_intersect(y)) {
+		std::pair<Point,Point> points = x.intersects(y);
+		printf("lat: %f, lng: %f\n", points.first.latitude, points.first.longitude);
+		printf("lat: %f, lng: %f\n", points.second.latitude, points.second.longitude);
 	}
-	printf("retval: %d\n", retval);
-	
-	
+
 	
 	/*
 	

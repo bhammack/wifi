@@ -55,5 +55,6 @@ int main(int argc, char** argv) {
 	Locator l;
 	l.open("test.db");
 	l.locate();
+	l.close();
 	return 0;
 }

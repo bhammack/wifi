@@ -64,6 +64,10 @@ class Point {
 			v = sin((lon2r - lon1r)/2);
 			return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
 		};
+	public:
+		static bool is_valid(double lat, double lng) {
+			return (abs(lat) < 90.0 && abs(lng) < 180.0);
+		};
 };
 
 // A circle. Defined as a point, and a radius.
@@ -129,6 +133,7 @@ class Locator {
 	public:
 		int open(const char* fname);
 		void locate();
+		void close();
 };
 
 int Locator::open(const char* fname) {
@@ -140,6 +145,11 @@ int Locator::open(const char* fname) {
 	}
 	return 0;
 };
+
+void Locator::close() {
+	sqlite3_close(db);
+	fprintf(stdout, "[Locator]: Closing database file <%s>\n", filename);
+}
 
 
 // Universal callback. Returns the row as a CSV string. SERIALIZATION BOIIII.
@@ -215,18 +225,25 @@ void Locator::trilaterate(std::string mac) {
 		Circle a = scans.at(i);
 		double local_lat;
 		double local_lng;
+		unsigned int valid = 0;
 		for (unsigned int j = 0; j < scans.size(); j++) {
 			Circle b = scans.at(j);
 			if (!a.does_intersect(b)) continue;
 			// The circles are guarenteed to intersect.
+			valid += 1;
 			std::pair<Point,Point> points = a.intersects(b);
 			local_lat += points.first.latitude + points.second.latitude;
 			local_lng += points.first.longitude + points.second.longitude;
 		}
 		// Average them out, considering there are twice the number of latitudes than the size.
 		// This is cause there's two points.
-		double avg_lat = local_lat / (scans.size()*2);
-		double avg_lng = local_lng / (scans.size()*2);
+		if (valid == 0) {
+			fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
+			continue;
+		}
+		double avg_lat = local_lat / (valid*2);
+		double avg_lng = local_lng / (valid*2);
+		printf("local average lat: %f, lng %f\n", avg_lat, avg_lng);
 		latitude += avg_lat;
 		longitude += avg_lng;
 	}
@@ -234,23 +251,40 @@ void Locator::trilaterate(std::string mac) {
 	double est_lat = latitude / scans.size();
 	double est_lng = latitude / scans.size();
 
+	// Check.
+	if (Point::is_valid(est_lat, est_lng)) {
+		printf("[Locator]: MAC %s is near lat: %f, lng: %f\n", mac.c_str(), est_lat, est_lng);
+	} else {
+		fprintf(stderr, "[Locator]: lat: %f, lng %f IS INVALID!!!\n", est_lat, est_lng);
+		return;
+	}
+	
 	// Insert the trilaterated value back into the database.
-	
-	
-	
-	
+	std::ostringstream q;
+	q << "UPDATE routers SET latitude=" << est_lat << ", longitude=" << est_lng;
+	q << " WHERE mac='" << mac << "';";
+	rv = sqlite3_exec(db, q.str().c_str(), NULL, NULL, &errmsg);
+	if (rv != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		fprintf(stderr, "query: %s\n", q.str().c_str());
+		sqlite3_free(errmsg);
+		return;
+	}
 }
 
 // Trilateration will consist of averaging all of the intersecting points for a given MAC.
 // In reality, I might be able to remove half of the points by only considering the
 // midpoint between the two circles (which should result in the same result???)
 void Locator::locate() {
+	/*
 	std::string select_macs = "SELECT mac FROM routers;";
 	std::vector<std::string> macs;
 	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
 	for (unsigned int i = 0; i < macs.size(); i++) {
 		trilaterate(macs.at(i));
 	}
+	*/
+	trilaterate("A0:63:91:87:A0:37");
 }
 
 

@@ -30,10 +30,9 @@ std::vector<std::string> split(const std::string &s, char delim) {
 */
 
 
-
 // http://rvmiller.com/2013/05/part-1-wifi-based-trilateration-on-android/
 // Based on the equation for free-space path loss; solved for distance in meters.
-double radius(double decibels, double gigahertz) {
+double fspl_distance(double decibels, double gigahertz) {
 	double megahertz = gigahertz * 1000.0;
 	const double c = 27.55; // magic constant... TODO: explain this...
 	double exp = (c - (20*log10(megahertz)) + abs(decibels)) / 20.0;
@@ -70,8 +69,8 @@ class Point {
 // A circle. Defined as a point, and a radius.
 class Circle {
 	public:
-		const Point center;
-		const double radius; // meters
+		Point center;
+		double radius; // meters
 	public:
 		Circle(double lat, double lng, double rad)
 		: center(lat,lng), radius(rad) {}
@@ -101,7 +100,6 @@ class Circle {
 		// Assumes two circles intersect. Use does_intersect to check this.
 		std::pair<Point,Point> intersects(const Circle& other) {
 			double d = center.distance_to(other.center);
-			
 			double a = ( pow(radius,2) - pow(other.radius,2) + pow(d,2)) / (2 * d);
 			double h = sqrt(pow(radius,2)-pow(a,2));
 			double p2lat = center.latitude + a*(other.center.latitude - center.latitude)/d;
@@ -121,20 +119,13 @@ class Circle {
 };
 
 
-
-
-
-
-
-
-
 class Locator {
 	private:
 		const char* filename;
 		char* errmsg;
 		sqlite3* db;
 		int rv;
-		void locate_mac(std::string mac);
+		void trilaterate(std::string mac);
 	public:
 		int open(const char* fname);
 		void locate();
@@ -153,7 +144,7 @@ int Locator::open(const char* fname) {
 
 // Universal callback. Returns the row as a CSV string. SERIALIZATION BOIIII.
 /*
-static int callback(void* io, int argc, char** argv, char** col_name) {
+static int serialize(void* io, int argc, char** argv, char** col_name) {
 	std::vector<std::string>* row = (std::vector<std::string>*)io;
 	std::ostringstream buffer;
 	for (int i = 0; i < argc; i++) {
@@ -168,7 +159,8 @@ static int callback(void* io, int argc, char** argv, char** col_name) {
 */
 
 // Another universal callback. Returns the query as a table of vector vector.
-static int callback2(void* io, int argc, char** argv, char** col_name) {
+/*
+static int callback(void* io, int argc, char** argv, char** col_name) {
 	std::vector< std::vector<std::string> >* table = (std::vector< std::vector<std::string> >*)io;
 	std::vector<std::string> row;
 	for (int i = 0; i < argc; i++)
@@ -176,15 +168,26 @@ static int callback2(void* io, int argc, char** argv, char** col_name) {
 	table->push_back(row);
 	return 0;
 }
+*/
+
+// Enum format for the row that I'm returning.
+enum {id, lat, lng, lat_err, lng_err, dbm, freq};
+static int cb_scans(void* io, int argc, char** argv, char** col_name) {
+	std::vector<Circle>* scans = (std::vector<Circle>*)io;
+	double latitude = atof(argv[lat]);
+	double longitude = atof(argv[lng]);
+	double frequency = atof(argv[freq]);
+	double decibels = atof(argv[dbm]);
+	//
+	Circle scan(latitude, longitude, fspl_distance(decibels, frequency));
+	scans->push_back(scan);
+	return 0;
+}
 
 
-
-
-// This method is called for every row returned via a select statement. Huh...
-// Can I chain these callbacks such that I keep calling back until I get what I need?
-// Eh, I probably shouldn't do it like that.
-static int cb_macs(void* macs_vector, int argc, char** argv, char** col_name) {
-	std::vector<std::string>* macs = (std::vector<std::string>*)macs_vector;
+// This method is called for every row returned via a select statement.
+static int cb_macs(void* io, int argc, char** argv, char** col_name) {
+	std::vector<std::string>* macs = (std::vector<std::string>*)io;
 	macs->push_back(std::string(argv[0]));
 	return 0;
 }
@@ -192,36 +195,46 @@ static int cb_macs(void* macs_vector, int argc, char** argv, char** col_name) {
 
 
 
-// This here is what makes the whole project chooch.
-void Locator::locate_mac(std::string mac) {
-	//std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude,
-	//scans.latitude_error, scans.longitude_error, data.signal, data.noise,
-	//data.quality FROM scans, data WHERE scans.id = data.scan_id AND data.mac = '" + mac + "';";
-	
+// This here is what makes the whole project chooch. TRILATERATION.
+void Locator::trilaterate(std::string mac) {
 	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	
-	
-	std::vector< std::vector<std::string> > table;
-	rv = sqlite3_exec(db, select_data.c_str(), callback2, &table, &errmsg);
+	std::vector<Circle> scans;
+	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &scans, &errmsg);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
 		sqlite3_free(errmsg);
 		return;
 	}
 	
-	//double latitude;
-	//double longitude;
-	//double radius;
+	// use the area of the intersection of all circles as the error/certainty?
 	
-	for (unsigned int i = 0; i < table.size(); i++) {
-		std::vector<std::string>* row = &table.at(i);
-		for (unsigned int j = 0; j < row->size(); j++) {
-			printf("%s\n", row->at(j).c_str());
-			
-			
+	double latitude;
+	double longitude;
+	for (unsigned int i = 0; i < scans.size(); i++) {
+		Circle a = scans.at(i);
+		double local_lat;
+		double local_lng;
+		for (unsigned int j = 0; j < scans.size(); j++) {
+			Circle b = scans.at(j);
+			if (!a.does_intersect(b)) continue;
+			// The circles are guarenteed to intersect.
+			std::pair<Point,Point> points = a.intersects(b);
+			local_lat += points.first.latitude + points.second.latitude;
+			local_lng += points.first.longitude + points.second.longitude;
 		}
+		// Average them out, considering there are twice the number of latitudes than the size.
+		// This is cause there's two points.
+		double avg_lat = local_lat / (scans.size()*2);
+		double avg_lng = local_lng / (scans.size()*2);
+		latitude += avg_lat;
+		longitude += avg_lng;
 	}
 	
+	double est_lat = latitude / scans.size();
+	double est_lng = latitude / scans.size();
+
+	// Insert the trilaterated value back into the database.
 	
 	
 	
@@ -232,24 +245,12 @@ void Locator::locate_mac(std::string mac) {
 // In reality, I might be able to remove half of the points by only considering the
 // midpoint between the two circles (which should result in the same result???)
 void Locator::locate() {
-	Circle x (29.623988, -82.360681, 60.0);
-	Circle y (29.624230, -82.360083, 5.0);
-	if (x.does_intersect(y)) {
-		std::pair<Point,Point> points = x.intersects(y);
-		printf("lat: %f, lng: %f\n", points.first.latitude, points.first.longitude);
-		printf("lat: %f, lng: %f\n", points.second.latitude, points.second.longitude);
-	}
-
-	
-	/*
-	
 	std::string select_macs = "SELECT mac FROM routers;";
 	std::vector<std::string> macs;
 	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
 	for (unsigned int i = 0; i < macs.size(); i++) {
-		locate_mac(macs.at(i));
+		trilaterate(macs.at(i));
 	}
-	*/
 }
 
 

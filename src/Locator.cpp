@@ -217,39 +217,40 @@ void Locator::trilaterate(std::string mac) {
 		return;
 	}
 	
-	// use the area of the intersection of all circles as the error/certainty?
-	
+	// Use the area of the intersection of all circles as the error/certainty?
+		// Yes, but how to calculate?
 	double latitude;
 	double longitude;
-	for (unsigned int i = 0; i < scans.size(); i++) {
+	unsigned int size = scans.size();
+	unsigned int valid = 0;
+	for (unsigned int i = 0; i < (size-1); i++) {
 		Circle a = scans.at(i);
-		double local_lat;
-		double local_lng;
-		unsigned int valid = 0;
-		for (unsigned int j = 0; j < scans.size(); j++) {
+		for (unsigned int j = i+1; j < size; j++) {
 			Circle b = scans.at(j);
-			if (!a.does_intersect(b)) continue;
+			if (!a.does_intersect(b)) {
+				continue;
+			}
 			// The circles are guarenteed to intersect.
 			valid += 1;
+			// There's really no reason I should return the pairs of points, 
+			// I'm going to end up averaging them anyway...
 			std::pair<Point,Point> points = a.intersects(b);
-			local_lat += points.first.latitude + points.second.latitude;
-			local_lng += points.first.longitude + points.second.longitude;
+			Point alpha = points.first;
+			Point beta = points.second;
+			//Point midpoint ((alpha.latitude+beta.latitude)/2.0, (alpha.longitude+beta.longitude)/2.0);
+			latitude += midpoint.latitude;
+			longitude += midpoint.longitude;
 		}
-		// Average them out, considering there are twice the number of latitudes than the size.
-		// This is cause there's two points.
-		if (valid == 0) {
-			fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
-			continue;
-		}
-		double avg_lat = local_lat / (valid*2);
-		double avg_lng = local_lng / (valid*2);
-		printf("local average lat: %f, lng %f\n", avg_lat, avg_lng);
-		latitude += avg_lat;
-		longitude += avg_lng;
 	}
-	
-	double est_lat = latitude / scans.size();
-	double est_lng = latitude / scans.size();
+	// Average them out, considering there are twice the number of latitudes than the size.
+	// This is cause there's two points.
+	fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", size, scans.size());
+	if (valid == 0) {
+		fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
+		continue;
+	}
+	double est_lat = latitude / valid;
+	double est_lng = latitude / valid;
 
 	// Check.
 	if (Point::is_valid(est_lat, est_lng)) {

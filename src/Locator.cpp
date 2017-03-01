@@ -83,18 +83,19 @@ class Circle {
 			double d = center.distance_to(other.center);
 			if (d > (radius + other.radius)) {
 				// no solutions. circles don't touch.
-				double delta = d - (radius + other.radius);
-				fprintf(stderr, "Point::intersects(): circles are %f meters from intersection\n", delta);
+				//double delta = d - (radius + other.radius);
+				//fprintf(stderr, "intersects(): circles are %f meters from intersection\n", delta);
+				fprintf(stderr, "intersects(): circles do not intersect\n");
 				return false;
 			}
 			if (d < abs(radius - other.radius)) {
 				// no solutions. circles coincide.
-				fprintf(stderr, "Point::intersects(): circles coincide\n");
+				fprintf(stderr, "intersects(): circles coincide\n");
 				return false;
 			}
 			if (d == 0) {
 				// infinite solutions.
-				fprintf(stderr, "Point::intersects(): infinite solutions\n");
+				fprintf(stderr, "ntersects(): infinite solutions\n");
 				return false;
 			}
 			return true;
@@ -223,6 +224,7 @@ void Locator::trilaterate(std::string mac) {
 	double longitude;
 	unsigned int size = scans.size();
 	unsigned int valid = 0;
+	
 	for (unsigned int i = 0; i < (size-1); i++) {
 		Circle a = scans.at(i);
 		for (unsigned int j = i+1; j < size; j++) {
@@ -230,6 +232,7 @@ void Locator::trilaterate(std::string mac) {
 			if (!a.does_intersect(b)) {
 				continue;
 			}
+			
 			// The circles are guarenteed to intersect.
 			valid += 1;
 			// There's really no reason I should return the pairs of points, 
@@ -237,17 +240,17 @@ void Locator::trilaterate(std::string mac) {
 			std::pair<Point,Point> points = a.intersects(b);
 			Point alpha = points.first;
 			Point beta = points.second;
-			//Point midpoint ((alpha.latitude+beta.latitude)/2.0, (alpha.longitude+beta.longitude)/2.0);
+			Point midpoint ((alpha.latitude+beta.latitude)/2.0, (alpha.longitude+beta.longitude)/2.0);
 			latitude += midpoint.latitude;
 			longitude += midpoint.longitude;
 		}
 	}
 	// Average them out, considering there are twice the number of latitudes than the size.
 	// This is cause there's two points.
-	fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", size, scans.size());
+	fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
 	if (valid == 0) {
 		fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
-		continue;
+		return;
 	}
 	double est_lat = latitude / valid;
 	double est_lng = latitude / valid;

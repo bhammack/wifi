@@ -95,7 +95,7 @@ class Circle {
 			}
 			if (d == 0) {
 				// infinite solutions.
-				fprintf(stderr, "ntersects(): infinite solutions\n");
+				fprintf(stderr, "intersects(): infinite solutions\n");
 				return false;
 			}
 			return true;

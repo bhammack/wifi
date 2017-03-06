@@ -67,7 +67,8 @@ int GpsScanner::scan(Position* pos) {
 				if (
 				(gpsdata.status == STATUS_FIX) && 
 				(gpsdata.fix.mode == MODE_2D || gpsdata.fix.mode == MODE_3D) &&
-				(!std::isnan(gpsdata.fix.latitude) && !std::isnan(gpsdata.fix.longitude))
+				(!std::isnan(gpsdata.fix.latitude) && !std::isnan(gpsdata.fix.longitude)) &&
+				(!std::isnan(gpsdata.fix.epy) && !std::isnan(gpsdata.fix.epx))
 					) {
 						scanning = 0;
 						populate(pos);

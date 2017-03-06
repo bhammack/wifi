@@ -100,6 +100,9 @@ class Circle {
 				//fprintf(stderr, "intersects(): infinite solutions\n");
 				return false;
 			}
+			if (center.latitude == other.center.latitude && center.longitude == other.center.longitude) {
+				return false;
+			}
 			return true;
 		}
 		

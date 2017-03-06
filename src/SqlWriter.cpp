@@ -128,6 +128,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 	rv = sqlite3_exec(db, q.str().c_str(), NULL, 0, &errmsg);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		fprintf(stderr, "query: %s\n", q.str().c_str());
 		sqlite3_free(errmsg);
 		return -1;
 	}

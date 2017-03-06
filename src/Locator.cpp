@@ -85,17 +85,17 @@ class Circle {
 				// no solutions. circles don't touch.
 				//double delta = d - (radius + other.radius);
 				//fprintf(stderr, "intersects(): circles are %f meters from intersection\n", delta);
-				fprintf(stderr, "intersects(): circles do not intersect\n");
+				//fprintf(stderr, "intersects(): circles do not intersect\n");
 				return false;
 			}
 			if (d < abs(radius - other.radius)) {
 				// no solutions. circles coincide.
-				fprintf(stderr, "intersects(): circles coincide\n");
+				//fprintf(stderr, "intersects(): circles coincide\n");
 				return false;
 			}
 			if (d == 0) {
 				// infinite solutions.
-				fprintf(stderr, "intersects(): infinite solutions\n");
+				//fprintf(stderr, "intersects(): infinite solutions\n");
 				return false;
 			}
 			return true;
@@ -130,7 +130,7 @@ class Locator {
 		char* errmsg;
 		sqlite3* db;
 		int rv;
-		void trilaterate(std::string mac);
+		int trilaterate(std::string mac);
 	public:
 		int open(const char* fname);
 		void locate();
@@ -144,6 +144,7 @@ int Locator::open(const char* fname) {
 		fprintf(stderr, "open(): can't open database: %s\n", sqlite3_errmsg(db));
 		return 1;
 	}
+	fprintf(stdout, "[Locator]: Opening database file <%s>\n", filename);
 	return 0;
 };
 
@@ -207,7 +208,8 @@ static int cb_macs(void* io, int argc, char** argv, char** col_name) {
 
 
 // This here is what makes the whole project chooch. TRILATERATION.
-void Locator::trilaterate(std::string mac) {
+int Locator::trilaterate(std::string mac) {
+	printf("[Locator]: Using mac address: %s\n", mac.c_str());
 	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	
 	std::vector<Circle> scans;
@@ -215,7 +217,7 @@ void Locator::trilaterate(std::string mac) {
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
 		sqlite3_free(errmsg);
-		return;
+		return -1;
 	}
 	
 	// Use the area of the intersection of all circles as the error/certainty?
@@ -247,10 +249,10 @@ void Locator::trilaterate(std::string mac) {
 	}
 	// Average them out, considering there are twice the number of latitudes than the size.
 	// This is cause there's two points.
-	fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
+	//fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
 	if (valid == 0) {
-		fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
-		return;
+		//fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
+		return 0;
 	}
 	double est_lat = latitude / valid;
 	double est_lng = latitude / valid;
@@ -260,7 +262,7 @@ void Locator::trilaterate(std::string mac) {
 		printf("[Locator]: MAC %s is near lat: %f, lng: %f\n", mac.c_str(), est_lat, est_lng);
 	} else {
 		fprintf(stderr, "[Locator]: lat: %f, lng %f IS INVALID!!!\n", est_lat, est_lng);
-		return;
+		return -1;
 	}
 	
 	// Insert the trilaterated value back into the database.
@@ -272,8 +274,10 @@ void Locator::trilaterate(std::string mac) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
 		fprintf(stderr, "query: %s\n", q.str().c_str());
 		sqlite3_free(errmsg);
-		return;
+		return -1;
 	}
+	
+	return 1;
 }
 
 // Trilateration will consist of averaging all of the intersecting points for a given MAC.
@@ -288,8 +292,12 @@ void Locator::locate() {
 	std::string select_macs = "SELECT mac FROM routers;";
 	std::vector<std::string> macs;
 	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
+	int retval;
 	for (unsigned int i = 0; i < macs.size(); i++) {
-		trilaterate(macs.at(i));
+		retval = trilaterate(macs.at(i));
+		if (retval == 0) {
+			printf("[Locator]: %s does not have enough data points...\n", macs.at(i).c_str());
+		}
 	}
 	
 	//trilaterate("A0:63:91:87:A0:37");

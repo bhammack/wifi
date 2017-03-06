@@ -7,3 +7,6 @@ scan: scan.cpp
 
 clean:
 	rm -f *.o
+
+debug: debug.cpp
+	g++ $(CFLAGS) -o debug.o debug.cpp -lgps -liw -lsqlite3

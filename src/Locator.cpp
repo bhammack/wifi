@@ -9,6 +9,7 @@
 
 #define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
+#define NO_WRITE 1
 
 // String split functions. Might not need them now
 /*
@@ -130,8 +131,8 @@ class Locator {
 		char* errmsg;
 		sqlite3* db;
 		int rv;
-		int trilaterate(std::string mac);
 	public:
+		int trilaterate(std::string mac);
 		int open(const char* fname);
 		void locate();
 		void close();
@@ -222,8 +223,8 @@ int Locator::trilaterate(std::string mac) {
 	
 	// Use the area of the intersection of all circles as the error/certainty?
 		// Yes, but how to calculate?
-	double latitude;
-	double longitude;
+	double latitude = 0.0;
+	double longitude = 0.0;
 	unsigned int size = scans.size();
 	unsigned int valid = 0;
 	
@@ -243,6 +244,10 @@ int Locator::trilaterate(std::string mac) {
 			Point alpha = points.first;
 			Point beta = points.second;
 			Point midpoint ((alpha.latitude+beta.latitude)/2.0, (alpha.longitude+beta.longitude)/2.0);
+			printf("Midpoint at lat: %f, lng: %f\n", midpoint.latitude, midpoint.longitude);
+			
+			
+			
 			latitude += midpoint.latitude;
 			longitude += midpoint.longitude;
 		}
@@ -251,7 +256,7 @@ int Locator::trilaterate(std::string mac) {
 	// This is cause there's two points.
 	//fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
 	if (valid == 0) {
-		//fprintf(stderr, "[Locator]: No scans were valid! Trilateration impossible!\n");
+		fprintf(stderr, "[Locator]: Not enough valid data points!\n");
 		return 0;
 	}
 	double est_lat = latitude / valid;
@@ -261,11 +266,13 @@ int Locator::trilaterate(std::string mac) {
 	if (Point::is_valid(est_lat, est_lng)) {
 		printf("[Locator]: MAC %s is near lat: %f, lng: %f\n", mac.c_str(), est_lat, est_lng);
 	} else {
-		fprintf(stderr, "[Locator]: lat: %f, lng %f IS INVALID!!!\n", est_lat, est_lng);
+		fprintf(stderr, "[Locator]: latitude/longitude position IS INVALID!!!\n");
+		fprintf(stderr, "Latitude: %f\n\nLongitude: %f\n\n", latitude, longitude);
+		fprintf(stderr, "Valid intersections: %d\n", valid);
 		return -1;
 	}
 	
-	// Insert the trilaterated value back into the database.
+	// Insert the trilaterated value back into the database.	
 	std::ostringstream q;
 	q << "UPDATE routers SET latitude=" << est_lat << ", longitude=" << est_lng;
 	q << " WHERE mac='" << mac << "';";
@@ -276,7 +283,6 @@ int Locator::trilaterate(std::string mac) {
 		sqlite3_free(errmsg);
 		return -1;
 	}
-	
 	return 1;
 }
 
@@ -288,19 +294,20 @@ int Locator::trilaterate(std::string mac) {
 // Only run locator on macs that the scan found (ie, new data points).
 
 void Locator::locate() {
-	
+	/*
 	std::string select_macs = "SELECT mac FROM routers;";
 	std::vector<std::string> macs;
 	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
-	int retval;
 	for (unsigned int i = 0; i < macs.size(); i++) {
 		retval = trilaterate(macs.at(i));
 		if (retval == 0) {
 			printf("[Locator]: %s does not have enough data points...\n", macs.at(i).c_str());
 		}
 	}
-	
-	//trilaterate("A0:63:91:87:A0:37");
+	*/
+	// free_virus:	A0:63:91:87:A0:37
+	// hamnet2:		30:46:9A:8D:6B:08
+	trilaterate("30:46:9A:8D:6B:08");
 }
 
 

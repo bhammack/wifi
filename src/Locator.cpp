@@ -279,16 +279,20 @@ void Locator::trilaterate(std::string mac) {
 // Trilateration will consist of averaging all of the intersecting points for a given MAC.
 // In reality, I might be able to remove half of the points by only considering the
 // midpoint between the two circles (which should result in the same result???)
+
+// TODO: I don't need to locate every mac, every iteration
+// Only run locator on macs that the scan found (ie, new data points).
+
 void Locator::locate() {
-	/*
+	
 	std::string select_macs = "SELECT mac FROM routers;";
 	std::vector<std::string> macs;
 	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
 	for (unsigned int i = 0; i < macs.size(); i++) {
 		trilaterate(macs.at(i));
 	}
-	*/
-	trilaterate("A0:63:91:87:A0:37");
+	
+	//trilaterate("A0:63:91:87:A0:37");
 }
 
 

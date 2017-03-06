@@ -63,9 +63,10 @@ class Point {
 			lon2r = deg2rad(other.longitude);
 			u = sin((lat2r - lat1r)/2);
 			v = sin((lon2r - lon1r)/2);
-			return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
+			return 2000.0 * EARTH_RADIUS_KM * asin(sqrt(  u*u + cos(lat1r)*cos(lat2r)*v*v  ));
 		};
 	public:
+	
 		static bool is_valid(double lat, double lng) {
 			return (abs(lat) < 90.0 && abs(lng) < 180.0);
 		};
@@ -107,7 +108,10 @@ class Circle {
 		std::pair<Point,Point> intersects(const Circle& other) {
 			double d = center.distance_to(other.center);
 			double a = ( pow(radius,2) - pow(other.radius,2) + pow(d,2)) / (2 * d);
-			double h = sqrt(pow(radius,2)-pow(a,2));
+			// h = nan.
+			//double h = sqrt(pow(radius,2)-pow(a,2));
+			// wow I'm dumb...
+			double h = sqrt(abs(pow(radius,2)-pow(a,2)));
 			double p2lat = center.latitude + a*(other.center.latitude - center.latitude)/d;
 			double p2lng = center.longitude + a*(other.center.longitude - center.longitude)/d;
 			
@@ -116,7 +120,7 @@ class Circle {
 			
 			double p3latB = p2lat + h*(other.center.longitude - center.longitude)/d;
 			double p3lngB = p2lng + h*(other.center.latitude - center.latitude)/d;
-			
+			//printf("d=%f, a=%f, h=%f\n, radius=%f, other.radius=%f\n", d, a, h, radius, other.radius);
 			Point left(p3latA, p3lngA);
 			Point right(p3latB, p3lngB);
 			return std::make_pair(left, right);
@@ -132,6 +136,7 @@ class Locator {
 		sqlite3* db;
 		int rv;
 	public:
+		std::vector<Circle> get_scans(std::string mac);
 		int trilaterate(std::string mac);
 		int open(const char* fname);
 		void locate();
@@ -205,13 +210,24 @@ static int cb_macs(void* io, int argc, char** argv, char** col_name) {
 	return 0;
 }
 
-
+std::vector<Circle> Locator::get_scans(std::string mac) {
+	std::vector<Circle> result;
+	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
+	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &result, &errmsg);
+	if (rv != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		fprintf(stderr, "query: %s\n", select_data.c_str());
+		sqlite3_free(errmsg);
+	}
+	return result;
+}
 
 
 // This here is what makes the whole project chooch. TRILATERATION.
 int Locator::trilaterate(std::string mac) {
 	printf("[Locator]: Using mac address: %s\n", mac.c_str());
-	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
+	
+	/*std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	
 	std::vector<Circle> scans;
 	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &scans, &errmsg);
@@ -220,14 +236,24 @@ int Locator::trilaterate(std::string mac) {
 		sqlite3_free(errmsg);
 		return -1;
 	}
-	
+	*/
+	std::vector<Circle> scans = get_scans(mac);
 	// Use the area of the intersection of all circles as the error/certainty?
 		// Yes, but how to calculate?
 	double latitude = 0.0;
 	double longitude = 0.0;
 	unsigned int size = scans.size();
 	unsigned int valid = 0;
-	
+	/*
+	if (true) {
+		printf("----------------------------------\n");
+		for (unsigned int x = 0; x < scans.size(); x++) {
+			Circle z = scans.at(x);
+			printf("(%f,%f,%f)\n", z.center.latitude, z.center.longitude, z.radius);
+		}
+		printf("----------------------------------\n");
+	}
+	*/
 	for (unsigned int i = 0; i < (size-1); i++) {
 		Circle a = scans.at(i);
 		for (unsigned int j = i+1; j < size; j++) {
@@ -235,7 +261,7 @@ int Locator::trilaterate(std::string mac) {
 			if (!a.does_intersect(b)) {
 				continue;
 			}
-			
+			//printf("Circles: (%f,%f,%f) (%f,%f,%f)\n", a.center.latitude, a.center.longitude, a.radius, b.center.latitude, b.center.longitude, b.radius);
 			// The circles are guarenteed to intersect.
 			valid += 1;
 			// There's really no reason I should return the pairs of points, 
@@ -243,13 +269,14 @@ int Locator::trilaterate(std::string mac) {
 			std::pair<Point,Point> points = a.intersects(b);
 			Point alpha = points.first;
 			Point beta = points.second;
-			Point midpoint ((alpha.latitude+beta.latitude)/2.0, (alpha.longitude+beta.longitude)/2.0);
-			printf("Midpoint at lat: %f, lng: %f\n", midpoint.latitude, midpoint.longitude);
-			
-			
-			
-			latitude += midpoint.latitude;
-			longitude += midpoint.longitude;
+			//printf("alpha: %f, %f\n", alpha.latitude, alpha.longitude);
+			//printf("beta: %f, %f\n", beta.latitude, beta.longitude);
+			double tlat = (alpha.latitude+beta.latitude)/2.0;
+			double tlng = (alpha.longitude+beta.longitude)/2.0;
+			//printf("Midpoint at lat: %f, lng: %f\n", tlat, tlng);
+			// something to do with NaN rules?
+			latitude += tlat;
+			longitude += tlng;
 		}
 	}
 	// Average them out, considering there are twice the number of latitudes than the size.
@@ -259,6 +286,8 @@ int Locator::trilaterate(std::string mac) {
 		fprintf(stderr, "[Locator]: Not enough valid data points!\n");
 		return 0;
 	}
+	printf("Valid intersections: %d\n", valid);
+
 	double est_lat = latitude / valid;
 	double est_lng = latitude / valid;
 
@@ -268,7 +297,6 @@ int Locator::trilaterate(std::string mac) {
 	} else {
 		fprintf(stderr, "[Locator]: latitude/longitude position IS INVALID!!!\n");
 		fprintf(stderr, "Latitude: %f\n\nLongitude: %f\n\n", latitude, longitude);
-		fprintf(stderr, "Valid intersections: %d\n", valid);
 		return -1;
 	}
 	

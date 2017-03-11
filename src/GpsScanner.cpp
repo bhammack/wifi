@@ -111,4 +111,5 @@ void GpsScanner::populate(Position* pos) {
 	pos->heading_dev = gpsdata.fix.epd;
 	pos->altitude_dev = gpsdata.fix.epv;
 	pos->climb_dev = gpsdata.fix.epc;
+	printf("[GpsScanner]: Current location: %lf, %lf\n", pos->latitude, pos->longitude);
 }

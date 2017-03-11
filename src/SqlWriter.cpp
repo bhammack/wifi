@@ -35,14 +35,15 @@ int SqlWriter::open(const char* fname) {
 		return 1;
 	}
 	// database must have opened successfully.
-
+	
+	// I can't believe I have to store doubles as strings for precision...
 	const char* schema = "\
 	CREATE TABLE IF NOT EXISTS scans(\
 		id					INTEGER PRIMARY KEY,\
 		time 				INTEGER NOT NULL,\
 		iface				CHARACTER(17) NOT NULL,\
-		latitude 			REAL NOT NULL,\
-		longitude 			REAL NOT NULL,\
+		latitude 			TEXT NOT NULL,\
+		longitude 			TEXT NOT NULL,\
 		latitude_error 		REAL NOT NULL,\
 		longitude_error 	REAL NOT NULL\
 	);\
@@ -50,16 +51,12 @@ int SqlWriter::open(const char* fname) {
 		mac 				CHARACTER(17) PRIMARY KEY UNIQUE,\
 		bssid 				VARCHAR(32),\
 		frequency			REAL NOT NULL,\
-		channel				INTEGER NOT NULL,\
-		latitude 			REAL,\
-		longitude 			REAL,\
-		radius				REAL\
+		channel				INTEGER NOT NULL\
 	);\
 	CREATE TABLE IF NOT EXISTS data(\
 		scan_id				INTEGER NOT NULL,\
 		mac 				CHARACTER(17),\
 		signal 				INTEGER,\
-		noise 				INTEGER,\
 		quality				REAL,\
 		FOREIGN KEY(scan_id) REFERENCES scans(id)\
 	);";
@@ -119,8 +116,8 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		
 	std::ostringstream lq;
 	lq << "SELECT id, latitude, longitude FROM scans WHERE";
-	lq << " latitude=" << pos->latitude;
-	lq << " and longitude=" << pos->longitude;
+	lq << " latitude='" << pos->latitude << "'";
+	lq << " and longitude='" << pos->longitude << "'";
 	lq << " and iface='" << iface_addr << "'";
 	lq << " limit 1;";
 	rv = sqlite3_exec(db, lq.str().c_str(), unique_loc, &scan_id, &errmsg);
@@ -138,8 +135,8 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		q << "NULL" << ",";
 		q << pos->time << ",";
 		q << "'" << iface_addr << "'" << ",";
-		q << pos->latitude << ",";
-		q << pos->longitude << ",";
+		q << "'" << pos->latitude << "'" << ",";
+		q << "'" << pos->longitude << "'" << ",";
 		q << pos->latitude_dev << ",";
 		q << pos->longitude_dev << "";
 		q << ");";
@@ -148,7 +145,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		// The location was the site of a previous scan. Update scan time.
 		q << "UPDATE scans SET";
 		q << " time=" << pos->time;
-		q << " WHERE latitude=" << pos->latitude << " AND longitude=" << pos->longitude << " AND iface='" << iface_addr << "';";
+		q << " WHERE latitude='" << pos->latitude << "' AND longitude='" << pos->longitude << "' AND iface='" << iface_addr << "';";
 	}
 		
 	// Execute the query formed from the stringstream.
@@ -203,11 +200,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 			q << "\"" << ap.mac << "\"" << ",";
 			q << "\"" << ap.essid << "\"" << ",";
 			q << ap.frequency << ",";
-			q << ap.channel << ",";
-			q << 0 << ",";
-			q << 0 << ",";
-			q << 0 << "";
-			q << ");"; // lat and lng estimiates init to 0's.
+			q << ap.channel << ");";
 		}
 		
 		// Insert the new data entries into the data table.
@@ -215,7 +208,6 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		q << scan_id << ",";
 		q << "'" << ap.mac << "'" << ",";
 		q << ap.signal << ","; 
-		q << ap.noise << ",";
 		q << ap.quality << "";
 		q << ");";
 	}

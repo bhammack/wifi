@@ -7,12 +7,14 @@
 #include <stdlib.h>
 #include <cmath>
 
+#include <iostream>
+#include <fstream>
+
 #define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
 #define NO_WRITE 1
 
 // String split functions. Might not need them now
-/*
 // http://stackoverflow.com/questions/236129/split-a-string-in-c
 template<typename Out>
 void split(const std::string &s, char delim, Out result) {
@@ -28,7 +30,23 @@ std::vector<std::string> split(const std::string &s, char delim) {
     split(s, delim, std::back_inserter(elems));
     return elems;
 }
-*/
+// Universal callback. Returns the row as a CSV string. SERIALIZATION BOIIII.
+static int serialize(void* io, int argc, char** argv, char** col_name) {
+	std::vector<std::string>* row = (std::vector<std::string>*)io;
+	std::ostringstream buffer;
+	for (int i = 0; i < argc; i++) {
+		buffer << argv[i];
+		if (i != (argc - 1)) {
+			buffer << "|";
+		}
+	}
+	row->push_back(buffer.str());
+	return 0;
+}
+
+
+
+
 
 
 // http://rvmiller.com/2013/05/part-1-wifi-based-trilateration-on-android/
@@ -140,10 +158,11 @@ class Locator {
 		int rv;
 	public:
 		std::vector<Circle> get_scans(std::string mac);
-		int trilaterate(std::string mac);
+		std::pair<double,double> trilaterate(std::string mac);
 		int open(const char* fname);
 		void locate();
 		void close();
+		void write_kml();
 };
 
 int Locator::open(const char* fname) {
@@ -162,22 +181,50 @@ void Locator::close() {
 	fprintf(stdout, "[Locator]: Closing database file <%s>\n", filename);
 }
 
-
-// Universal callback. Returns the row as a CSV string. SERIALIZATION BOIIII.
-/*
-static int serialize(void* io, int argc, char** argv, char** col_name) {
-	std::vector<std::string>* row = (std::vector<std::string>*)io;
-	std::ostringstream buffer;
-	for (int i = 0; i < argc; i++) {
-		buffer << "\"" << argv[i] << "\"";
-		if (i != (argc - 1)) {
-			buffer << ",";
-		}
-	}
-	row->push_back(buffer.str());
+// This method is called for every row returned via a select statement.
+static int cb_macs(void* io, int argc, char** argv, char** col_name) {
+	std::vector<std::string>* macs = (std::vector<std::string>*)io;
+	macs->push_back(std::string(argv[0]));
 	return 0;
 }
-*/
+
+void Locator::write_kml() {
+	std::ofstream kml;
+	char nl = '\n';
+	char tb = '\t';
+	kml.open("output.kml", std::ios::out | std::ios::trunc);
+	kml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << nl;
+	kml << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">" << nl;
+	kml << "<Document>" << nl;	
+	
+	
+	
+	std::string select_routers = "SELECT * FROM routers;";
+	std::vector<std::string> routers;
+	rv = sqlite3_exec(db, select_routers.c_str(), serialize, &routers, &errmsg);
+	for (unsigned int i = 0; i < routers.size(); i++) {
+		std::vector<std::string> data = split(routers.at(i), '|');
+		std::string mac = data.at(0);
+		std::string ssid = data.at(1);
+		std::string freq = data.at(2);
+		std::string channel = data.at(3);
+		std::pair<double,double> pos = trilaterate(mac);
+		
+		kml << "<Placemark>" << nl;
+		kml << "<name>" << ssid << "</name>" << nl;
+		kml << "<description>" << mac << "</description>" << nl;
+		kml << "<Point>" << nl;
+		kml << "<coordinates>" << pos.second << "," << pos.first << "</coordinates>" << nl;
+		kml << "</Point>" << nl << "</Placemark>" << nl;
+		
+	}
+	
+	kml << "</Document>" << nl;
+	kml.close();
+}
+
+
+
 
 // Another universal callback. Returns the query as a table of vector vector.
 /*
@@ -206,12 +253,6 @@ static int cb_scans(void* io, int argc, char** argv, char** col_name) {
 }
 
 
-// This method is called for every row returned via a select statement.
-static int cb_macs(void* io, int argc, char** argv, char** col_name) {
-	std::vector<std::string>* macs = (std::vector<std::string>*)io;
-	macs->push_back(std::string(argv[0]));
-	return 0;
-}
 
 std::vector<Circle> Locator::get_scans(std::string mac) {
 	std::vector<Circle> result;
@@ -227,8 +268,9 @@ std::vector<Circle> Locator::get_scans(std::string mac) {
 
 
 // This here is what makes the whole project chooch. TRILATERATION.
-int Locator::trilaterate(std::string mac) {
+std::pair<double,double> Locator::trilaterate(std::string mac) {
 	printf("[Locator]: Using mac address: %s\n", mac.c_str());
+	std::pair<double,double> pos = std::make_pair(0.0,0.0);
 	
 	/*std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	
@@ -276,7 +318,7 @@ int Locator::trilaterate(std::string mac) {
 			//printf("beta: %f, %f\n", beta.latitude, beta.longitude);
 			double tlat = (alpha.latitude+beta.latitude)/2.0;
 			double tlng = (alpha.longitude+beta.longitude)/2.0;
-			//printf("Midpoint at lat: %f, lng: %f\n", tlat, tlng);
+			//printf("%f,%f,0\n", tlat, tlng);
 			// something to do with NaN rules?
 			latitude += tlat;
 			longitude += tlng;
@@ -287,7 +329,7 @@ int Locator::trilaterate(std::string mac) {
 	//fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
 	if (valid == 0) {
 		fprintf(stderr, "[Locator]: Not enough valid data points!\n");
-		return 0;
+		return pos;
 	}
 	printf("Valid intersections: %d\n", valid);
 
@@ -297,10 +339,11 @@ int Locator::trilaterate(std::string mac) {
 	// Check.
 	if (Point::is_valid(est_lat, est_lng)) {
 		printf("[Locator]: MAC %s is near: %f, %f\n", mac.c_str(), est_lat, est_lng);
+		pos = std::make_pair(est_lat, est_lng);
 	} else {
 		fprintf(stderr, "[Locator]: latitude/longitude position IS INVALID!!!\n");
 		fprintf(stderr, "Latitude: %f\n\nLongitude: %f\n\n", latitude, longitude);
-		return -1;
+		//return -1;
 	}
 	
 	// Insert the trilaterated value back into the database.
@@ -316,7 +359,8 @@ int Locator::trilaterate(std::string mac) {
 		return -1;
 	}
 	*/
-	return 1;
+	//return 1;
+	return pos;
 }
 
 // Trilateration will consist of averaging all of the intersecting points for a given MAC.

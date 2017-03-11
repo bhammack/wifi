@@ -4,3 +4,5 @@
 *.bin
 *.db
 *.exe
+*.sqlite3
+

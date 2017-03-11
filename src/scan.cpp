@@ -2,7 +2,7 @@
 #include "AccessPoint.cpp"
 #include "GpsScanner.cpp"
 #include "SqlWriter.cpp"
-#include "Locator.cpp"
+//#include "Locator.cpp"
 #include <vector>
 
 // sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
@@ -41,10 +41,10 @@ int scan(const char* iface, const char* filename) {
 	// Trilaterate. 
 	// TODO: Merge this in with the SqlWriter.
 		// Only one class should access the DB for encapsulation purposes.
-	Locator l;
-	l.open(filename);
-	l.locate();
-	l.close();
+	//Locator l;
+	//l.open(filename);
+	//l.locate();
+	//l.close();
 
 	return 0;
 }
@@ -67,11 +67,5 @@ int main(int argc, char** argv) {
 	char* filepath = argv[2];
 	printf("Scanning on interface %s. Writing to file %s\n", iface, filepath);
 	scanloop(iface, filepath);
-	//printf("scan() returned %d\n", scan("wlan1"));
-	//return scanloop();
-	//Locator l;
-	//l.open(filepath);
-	//l.locate();
-	//l.close();
 	return 0;
 }

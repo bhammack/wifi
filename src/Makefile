@@ -8,5 +8,5 @@ scan: scan.cpp
 clean:
 	rm -f *.o
 
-debug: debug.cpp
-	g++ $(CFLAGS) -o debug.o debug.cpp -lgps -liw -lsqlite3
+locate: locate.cpp
+	g++ $(CFLAGS) -o locate.o locate.cpp -lgps -liw -lsqlite3

@@ -292,18 +292,19 @@ int Locator::trilaterate(std::string mac) {
 	printf("Valid intersections: %d\n", valid);
 
 	double est_lat = latitude / valid;
-	double est_lng = latitude / valid;
+	double est_lng = longitude / valid;
 
 	// Check.
 	if (Point::is_valid(est_lat, est_lng)) {
-		printf("[Locator]: MAC %s is near lat: %f, lng: %f\n", mac.c_str(), est_lat, est_lng);
+		printf("[Locator]: MAC %s is near: %f, %f\n", mac.c_str(), est_lat, est_lng);
 	} else {
 		fprintf(stderr, "[Locator]: latitude/longitude position IS INVALID!!!\n");
 		fprintf(stderr, "Latitude: %f\n\nLongitude: %f\n\n", latitude, longitude);
 		return -1;
 	}
 	
-	// Insert the trilaterated value back into the database.	
+	// Insert the trilaterated value back into the database.
+	/*
 	std::ostringstream q;
 	q << "UPDATE routers SET latitude=" << est_lat << ", longitude=" << est_lng;
 	q << " WHERE mac='" << mac << "';";
@@ -314,6 +315,7 @@ int Locator::trilaterate(std::string mac) {
 		sqlite3_free(errmsg);
 		return -1;
 	}
+	*/
 	return 1;
 }
 

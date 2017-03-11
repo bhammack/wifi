@@ -66,10 +66,6 @@ int SqlWriter::open(const char* fname) {
 	// get the row id from scans.
 	// make a column in data for the row id of scans as a foreign key.
 	
-	
-	
-	
-	
 	rv = sqlite3_exec(db, schema, NULL, 0, NULL);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "Creation of schema failed: %s\n", sqlite3_errmsg(db));
@@ -92,6 +88,14 @@ static int callback(void *not_used, int argc, char** argv, char** col_name) {
 	return 0;
 }
 */
+
+static int unique_loc(void* io, int argc, char** argv, char** col_name) {
+	int* x = (int*)io;
+	*x = atoi(argv[0]);
+	return 0;
+}
+
+
 static int exists_callback(void* mac_address, int argc, char** argv, char** col_name) {
 	int* x = (int*)mac_address;
 	*x = atoi(argv[0]);
@@ -106,24 +110,47 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		return 0;
 	}
 
-	// Writing to the database will be doine with only one sqlite3_exec() command.
+	int scan_id = -1;
 	std::string iface_addr = std::string(hw_addr); 
-	std::ostringstream q; // queries. All executed at once.
+	std::ostringstream q;
 
-	// INSERT INTO scans VALUES ()
-	// First create the query to insert into scans.
 	// TODO: This is the "bad" way to insert values. 
 		// You should be referencing the row name.
-	q << "INSERT INTO scans VALUES(";
-	q << "NULL" << ",";
-	q << pos->time << ",";
-	q << "\"" << iface_addr << "\"" << ",";
-	q << pos->latitude << ",";
-	q << pos->longitude << ",";
-	q << pos->latitude_dev << ",";
-	q << pos->longitude_dev << "";
-	q << ");";
-	
+		
+	std::ostringstream lq;
+	lq << "SELECT id, latitude, longitude FROM scans WHERE";
+	lq << " latitude=" << pos->latitude;
+	lq << " and longitude=" << pos->longitude;
+	lq << " and iface='" << iface_addr << "'";
+	lq << " limit 1;";
+	rv = sqlite3_exec(db, lq.str().c_str(), unique_loc, &scan_id, &errmsg);
+	if (rv != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		fprintf(stderr, "query: %s\n", q.str().c_str());
+		sqlite3_free(errmsg);
+		return -1;
+	}
+		
+	//printf("The value of scan_id: %d\n", scan_id);	
+	if (scan_id < 0) {
+		// The location is a new unique scan location. Insert as usual, getting last_insert_rowid().
+		q << "INSERT INTO scans VALUES(";
+		q << "NULL" << ",";
+		q << pos->time << ",";
+		q << "'" << iface_addr << "'" << ",";
+		q << pos->latitude << ",";
+		q << pos->longitude << ",";
+		q << pos->latitude_dev << ",";
+		q << pos->longitude_dev << "";
+		q << ");";
+		
+	} else {
+		// The location was the site of a previous scan. Update scan time.
+		q << "UPDATE scans SET";
+		q << " time=" << pos->time;
+		q << " WHERE latitude=" << pos->latitude << " AND longitude=" << pos->longitude << " AND iface='" << iface_addr << "';";
+	}
+		
 	// Execute the query formed from the stringstream.
 	rv = sqlite3_exec(db, q.str().c_str(), NULL, 0, &errmsg);
 	if (rv != SQLITE_OK) {
@@ -137,23 +164,27 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 	q.str("");
 	q.clear();
 	
-	// Execute the next query to retreive the new id.
-	std::string rid_query;
-	rid_query = "SELECT last_insert_rowid();";
-	int scan_id = 0;
-	rv = sqlite3_exec(db, rid_query.c_str(), exists_callback, &scan_id, &errmsg);
-	if (rv != SQLITE_OK) {
-		fprintf(stderr, "SQL error: %s\n", errmsg);
-		sqlite3_free(errmsg);
-		return -1;
+	if (scan_id < 0) {
+		// Execute the next query to retreive the new id.
+		std::string rid_query;
+		rid_query = "SELECT last_insert_rowid();";
+		rv = sqlite3_exec(db, rid_query.c_str(), exists_callback, &scan_id, &errmsg);
+		if (rv != SQLITE_OK) {
+			fprintf(stderr, "SQL error: %s\n", errmsg);
+			sqlite3_free(errmsg);
+			return -1;
+		}
+		printf("[SqlWriter]: New scan %d inserted!\n", scan_id);
+	} else {
+		printf("[SqlWriter]: Scan was at site of previous scan #%d!\n", scan_id);
 	}
-	printf("[SqlWriter]: New scan row %d inserted!\n", scan_id);
+	
 	
 	// To build the one query we'll execute, iterate over all ap's found.
 	std::string ap_query;
 	for (unsigned int i = 0; i < ap_list->size(); i++) {
 		AccessPoint ap = ap_list->at(i);
-		ap_query = "SELECT EXISTS(SELECT 1 FROM routers WHERE mac=\"" + std::string(ap.mac) + "\" LIMIT 1);";
+		ap_query = "SELECT EXISTS(SELECT 1 FROM routers WHERE mac='" + std::string(ap.mac) + "' LIMIT 1);";
 		int mac_exists = 0;
 		rv = sqlite3_exec(db, ap_query.c_str(), exists_callback, &mac_exists, &errmsg);
 		if (rv != SQLITE_OK) {
@@ -182,9 +213,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		// Insert the new data entries into the data table.
 		q << "INSERT INTO data VALUES(";
 		q << scan_id << ",";
-		//q << pos->time << ",";
-		//q << "\"" << iface_addr << "\"" << ",";
-		q << "\"" << ap.mac << "\"" << ",";
+		q << "'" << ap.mac << "'" << ",";
 		q << ap.signal << ","; 
 		q << ap.noise << ",";
 		q << ap.quality << "";

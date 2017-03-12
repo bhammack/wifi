@@ -13,7 +13,6 @@
 // customized to produce SQLite3 queries. 
 // for instance, q << "\"" << some_string << "\"" << "," is tedious.
 
-
 // Class written to encapsualte dumping out data to a sqlite database instance.
 class SqlWriter {
 	public:
@@ -34,16 +33,14 @@ int SqlWriter::open(const char* fname) {
 		fprintf(stderr, "open(): can't open database: %s\n", sqlite3_errmsg(db));
 		return 1;
 	}
-	// database must have opened successfully.
 	
-	// I can't believe I have to store doubles as strings for precision...
 	const char* schema = "\
 	CREATE TABLE IF NOT EXISTS scans(\
 		id					INTEGER PRIMARY KEY,\
 		time 				INTEGER NOT NULL,\
 		iface				CHARACTER(17) NOT NULL,\
-		latitude 			TEXT NOT NULL,\
-		longitude 			TEXT NOT NULL,\
+		latitude 			REAL NOT NULL,\
+		longitude 			REAL NOT NULL,\
 		latitude_error 		REAL NOT NULL,\
 		longitude_error 	REAL NOT NULL\
 	);\
@@ -77,14 +74,6 @@ void SqlWriter::close() {
 	sqlite3_close(db);
 	fprintf(stdout, "[SqlWriter]: Closing database file <%s>\n", this->filename);
 }
-/*
-static int callback(void *not_used, int argc, char** argv, char** col_name) {
-	for (int i = 0; i < argc; i++)
-		printf("%s = %s\n", col_name[i], argv[i] ? argv[i] : "NULL");
-	// col_name seems to be the query we used, not the actual column.
-	return 0;
-}
-*/
 
 static int unique_loc(void* io, int argc, char** argv, char** col_name) {
 	int* x = (int*)io;
@@ -110,23 +99,22 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 	int scan_id = -1;
 	std::string iface_addr = std::string(hw_addr); 
 	std::ostringstream q;
-
+	q.precision(8); // wow
 	// TODO: This is the "bad" way to insert values. 
 		// You should be referencing the row name.
-		
-	std::ostringstream lq;
-	lq << "SELECT id, latitude, longitude FROM scans WHERE";
-	lq << " latitude='" << pos->latitude << "'";
-	lq << " and longitude='" << pos->longitude << "'";
-	lq << " and iface='" << iface_addr << "'";
-	lq << " limit 1;";
-	rv = sqlite3_exec(db, lq.str().c_str(), unique_loc, &scan_id, &errmsg);
+	q << "SELECT id, latitude, longitude FROM scans WHERE";
+	q << " latitude=" << pos->latitude;
+	q << " and longitude=" << pos->longitude;
+	q << " and iface='" << iface_addr << "'";
+	q << " limit 1;";
+	rv = sqlite3_exec(db, q.str().c_str(), unique_loc, &scan_id, &errmsg);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
 		fprintf(stderr, "query: %s\n", q.str().c_str());
 		sqlite3_free(errmsg);
 		return -1;
 	}
+	q.str(""); q.clear();
 		
 	//printf("The value of scan_id: %d\n", scan_id);	
 	if (scan_id < 0) {
@@ -135,8 +123,8 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		q << "NULL" << ",";
 		q << pos->time << ",";
 		q << "'" << iface_addr << "'" << ",";
-		q << "'" << pos->latitude << "'" << ",";
-		q << "'" << pos->longitude << "'" << ",";
+		q << pos->latitude << ",";
+		q << pos->longitude << ",";
 		q << pos->latitude_dev << ",";
 		q << pos->longitude_dev << "";
 		q << ");";
@@ -145,7 +133,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 		// The location was the site of a previous scan. Update scan time.
 		q << "UPDATE scans SET";
 		q << " time=" << pos->time;
-		q << " WHERE latitude='" << pos->latitude << "' AND longitude='" << pos->longitude << "' AND iface='" << iface_addr << "';";
+		q << " WHERE latitude=" << pos->latitude << " AND longitude=" << pos->longitude << " AND iface='" << iface_addr << "';";
 	}
 		
 	// Execute the query formed from the stringstream.
@@ -158,8 +146,7 @@ int SqlWriter::write(char* hw_addr, Position* pos, std::vector<AccessPoint>* ap_
 	}
 	
 	// Clear out the stringstream.
-	q.str("");
-	q.clear();
+	q.str(""); q.clear();
 	
 	if (scan_id < 0) {
 		// Execute the next query to retreive the new id.

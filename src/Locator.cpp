@@ -160,7 +160,6 @@ class Locator {
 		std::vector<Circle> get_scans(std::string mac);
 		std::pair<double,double> trilaterate(std::string mac);
 		int open(const char* fname);
-		void locate();
 		void close();
 		void write_kml();
 };
@@ -181,17 +180,10 @@ void Locator::close() {
 	fprintf(stdout, "[Locator]: Closing database file <%s>\n", filename);
 }
 
-// This method is called for every row returned via a select statement.
-static int cb_macs(void* io, int argc, char** argv, char** col_name) {
-	std::vector<std::string>* macs = (std::vector<std::string>*)io;
-	macs->push_back(std::string(argv[0]));
-	return 0;
-}
-
 void Locator::write_kml() {
 	std::ofstream kml;
 	char nl = '\n';
-	char tb = '\t';
+	//char tb = '\t';
 	kml.open("output.kml", std::ios::out | std::ios::trunc);
 	kml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << nl;
 	kml << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">" << nl;
@@ -223,20 +215,6 @@ void Locator::write_kml() {
 	kml.close();
 }
 
-
-
-
-// Another universal callback. Returns the query as a table of vector vector.
-/*
-static int callback(void* io, int argc, char** argv, char** col_name) {
-	std::vector< std::vector<std::string> >* table = (std::vector< std::vector<std::string> >*)io;
-	std::vector<std::string> row;
-	for (int i = 0; i < argc; i++)
-		row.push_back(std::string(argv[i]));
-	table->push_back(row);
-	return 0;
-}
-*/
 
 // Enum format for the row that I'm returning.
 enum {id, lat, lng, lat_err, lng_err, dbm, freq};
@@ -346,20 +324,6 @@ std::pair<double,double> Locator::trilaterate(std::string mac) {
 		//return -1;
 	}
 	
-	// Insert the trilaterated value back into the database.
-	/*
-	std::ostringstream q;
-	q << "UPDATE routers SET latitude=" << est_lat << ", longitude=" << est_lng;
-	q << " WHERE mac='" << mac << "';";
-	rv = sqlite3_exec(db, q.str().c_str(), NULL, NULL, &errmsg);
-	if (rv != SQLITE_OK) {
-		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
-		fprintf(stderr, "query: %s\n", q.str().c_str());
-		sqlite3_free(errmsg);
-		return -1;
-	}
-	*/
-	//return 1;
 	return pos;
 }
 
@@ -369,25 +333,6 @@ std::pair<double,double> Locator::trilaterate(std::string mac) {
 
 // TODO: I don't need to locate every mac, every iteration
 // Only run locator on macs that the scan found (ie, new data points).
-
-void Locator::locate() {
-	/*
-	std::string select_macs = "SELECT mac FROM routers;";
-	std::vector<std::string> macs;
-	rv = sqlite3_exec(db, select_macs.c_str(), cb_macs, &macs, &errmsg);
-	for (unsigned int i = 0; i < macs.size(); i++) {
-		retval = trilaterate(macs.at(i));
-		if (retval == 0) {
-			printf("[Locator]: %s does not have enough data points...\n", macs.at(i).c_str());
-		}
-	}
-	*/
-	// free_virus:	A0:63:91:87:A0:37
-	// hamnet2:		30:46:9A:8D:6B:08
-	trilaterate("30:46:9A:8D:6B:08");
-}
-
-
 
 
 

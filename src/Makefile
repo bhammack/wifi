@@ -9,4 +9,4 @@ clean:
 	rm -f *.o
 
 locate: locate.cpp
-	g++ $(CFLAGS) -o locate.o locate.cpp -lgps -liw -lsqlite3
+	g++ $(CFLAGS) -o locate.o locate.cpp -lsqlite3

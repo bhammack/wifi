@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <cmath>
 
+#include <sstream>
 #include <iostream>
 #include <fstream>
 
@@ -14,6 +15,9 @@
 #define EARTH_RADIUS_KM 6371.0
 #define NO_WRITE 1
 
+// Degrees to radians.
+double deg2rad(double deg) { return (deg * PI / 180); };
+double rad2deg(double rad) { return (rad * 180 / PI); };
 // String split functions. Might not need them now
 // http://stackoverflow.com/questions/236129/split-a-string-in-c
 template<typename Out>
@@ -43,12 +47,6 @@ static int serialize(void* io, int argc, char** argv, char** col_name) {
 	row->push_back(buffer.str());
 	return 0;
 }
-
-
-
-
-
-
 // http://rvmiller.com/2013/05/part-1-wifi-based-trilateration-on-android/
 // Based on the equation for free-space path loss; solved for distance in meters.
 double fspl_distance(double decibels, double gigahertz) {
@@ -58,17 +56,78 @@ double fspl_distance(double decibels, double gigahertz) {
 	return pow(10.0, exp);
 }
 
+
+
+class KmlDrawer {
+	private:
+		std::ofstream kml;
+	public:
+		void open(const char* filename);
+		void close();
+		void draw_circle(std::string name, std::string desc, double latitude, double longitude, double radius);
+		void draw_point(std::string name, std::string desc, double latitude, double longitude);
+		void style();
+};
+
+void KmlDrawer::close() {
+	kml << "</Document>\n</kml>"; 
+	kml.close();
+}
+
+void KmlDrawer::open(const char* filename) {
+	kml.open(filename, std::ios::out | std::ios::trunc);
+	kml.precision(9);
+	kml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	kml << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n";
+	kml << "<Document>\n";
+	style();
+}
+
+// https://knackforge.com/blog/narendran/kml-google-map-circle-generator-script-php
+void KmlDrawer::draw_circle(std::string name, std::string desc, double latitude, double longitude, double radius) {
+	// Radius in meters... I think?
+	kml << "<Placemark>\n<name>" << name << "</name>\n<description>" << desc << "</description>\n";
+	kml << "<styleUrl>#style0</styleUrl>\n";
+	kml << "<Polygon>\n<outerBoundaryIs>\n<LinearRing>\n<coordinates>\n";
+	double lat1 = deg2rad(latitude);
+	double long1 = deg2rad(longitude);
+	double d_rad = radius/6378137;	
+	for (int i = 0; i <= 360; i+=3) {
+		double radial = deg2rad(i);
+		double lat_rad = asin(sin(lat1)*cos(d_rad) + cos(lat1)*sin(d_rad)*cos(radial));
+		double dlon_rad = atan2(sin(radial)*sin(d_rad)*cos(lat1), cos(d_rad)-sin(lat1)*sin(lat_rad));
+		double lon_rad = fmod((long1+dlon_rad+PI), 2*PI) - PI;
+		kml << rad2deg(lon_rad) << "," << rad2deg(lat_rad) << ",0\n";
+	}
+	kml << "</coordinates>\n</LinearRing>\n</outerBoundaryIs>\n</Polygon>\n</Placemark>\n";
+}
+
+void KmlDrawer::draw_point(std::string name, std::string desc, double latitude, double longitude) {
+	kml << "<Placemark>\n";
+	kml << "<name>" << name << "</name>\n";
+	kml << "<description>" << desc << "</description>\n";
+	kml << "<Point>\n";
+	kml << "<coordinates>" << longitude << "," << latitude << "</coordinates>\n";
+	kml << "</Point>\n</Placemark>\n";
+}
+
+void KmlDrawer::style() {
+	kml << "<Style id=\"style0\"><PolyStyle><fill>0</fill><outline>1</outline></PolyStyle><LineStyle><color>ff0000ff</color><width>1</width></LineStyle></Style>\n";
+}
+
+
+
+
+
+
+
+
 // http://math.stackexchange.com/questions/221881/the-intersection-of-n-disks-circles
 
 // A class for a 2-Dimensional point on Earth surface. A coordinate position.
 class Point {	
-	private:
-		// TODO: Add the def for PI and EARTH_RADIUS_KM here.
-		double deg2rad(double deg) const { return (deg * PI / 180); };
-		double rad2deg(double rad) const { return (rad * 180 / PI); };
 	public:
-		Point(double lat, double lng) 
-		: latitude(lat), longitude(lng) {}
+		Point(double lat, double lng) : latitude(lat), longitude(lng) {}
 		
 		double latitude, longitude;
 		// Haversine formula. Distance returned in meters.
@@ -124,7 +183,6 @@ class Circle {
 			return true;
 		}
 		
-		
 		// Assumes two circles intersect. Use does_intersect to check this.
 		std::pair<Point,Point> intersects(const Circle& other) {
 			double d = center.distance_to(other.center);
@@ -147,11 +205,20 @@ class Circle {
 			return std::make_pair(left, right);
 		};
 		
+		bool contains(const Point& p) {
+			if (p.distance_to(center) > radius) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		
 };
 
 
 class Locator {
 	private:
+		KmlDrawer kml;
 		const char* filename;
 		char* errmsg;
 		sqlite3* db;
@@ -162,6 +229,7 @@ class Locator {
 		int open(const char* fname);
 		void close();
 		void write_kml();
+		void write_meta();
 };
 
 int Locator::open(const char* fname) {
@@ -172,25 +240,17 @@ int Locator::open(const char* fname) {
 		return 1;
 	}
 	fprintf(stdout, "[Locator]: Opening database file <%s>\n", filename);
+	kml.open("newoutput.kml");
 	return 0;
 };
 
 void Locator::close() {
 	sqlite3_close(db);
+	kml.close();
 	fprintf(stdout, "[Locator]: Closing database file <%s>\n", filename);
 }
 
-void Locator::write_kml() {
-	std::ofstream kml;
-	char nl = '\n';
-	//char tb = '\t';
-	kml.open("output.kml", std::ios::out | std::ios::trunc);
-	kml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << nl;
-	kml << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">" << nl;
-	kml << "<Document>" << nl;	
-	
-	
-	
+void Locator::write_kml() {	
 	std::string select_routers = "SELECT * FROM routers;";
 	std::vector<std::string> routers;
 	rv = sqlite3_exec(db, select_routers.c_str(), serialize, &routers, &errmsg);
@@ -200,24 +260,15 @@ void Locator::write_kml() {
 		std::string ssid = data.at(1);
 		std::string freq = data.at(2);
 		std::string channel = data.at(3);
-		std::pair<double,double> pos = trilaterate(mac);
-		
-		kml << "<Placemark>" << nl;
-		kml << "<name>" << ssid << "</name>" << nl;
-		kml << "<description>" << mac << "</description>" << nl;
-		kml << "<Point>" << nl;
-		kml << "<coordinates>" << pos.second << "," << pos.first << "</coordinates>" << nl;
-		kml << "</Point>" << nl << "</Placemark>" << nl;
-		
+		std::pair<double,double> pos = trilaterate(mac);	
+		// draw point
 	}
-	
-	kml << "</Document>" << nl;
-	kml.close();
 }
 
 
+
 // Enum format for the row that I'm returning.
-enum {id, lat, lng, lat_err, lng_err, dbm, freq};
+enum {id, lat, lng, dbm, freq};
 static int cb_scans(void* io, int argc, char** argv, char** col_name) {
 	std::vector<Circle>* scans = (std::vector<Circle>*)io;
 	double latitude = atof(argv[lat]);
@@ -231,10 +282,9 @@ static int cb_scans(void* io, int argc, char** argv, char** col_name) {
 }
 
 
-
 std::vector<Circle> Locator::get_scans(std::string mac) {
 	std::vector<Circle> result;
-	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
+	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &result, &errmsg);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
@@ -244,98 +294,74 @@ std::vector<Circle> Locator::get_scans(std::string mac) {
 	return result;
 }
 
-
+// Achievement unlocked: --computer science graduate--
+	// You wrote an O(n^3) algorithm and justified using it!
+	
 // This here is what makes the whole project chooch. TRILATERATION.
 std::pair<double,double> Locator::trilaterate(std::string mac) {
-	printf("[Locator]: Using mac address: %s\n", mac.c_str());
+	printf("[Locator]: Using MAC address: %s\n", mac.c_str());
 	std::pair<double,double> pos = std::make_pair(0.0,0.0);
-	
-	/*std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, scans.latitude_error, scans.longitude_error, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
-	
-	std::vector<Circle> scans;
-	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &scans, &errmsg);
-	if (rv != SQLITE_OK) {
-		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
-		sqlite3_free(errmsg);
-		return -1;
-	}
-	*/
 	std::vector<Circle> scans = get_scans(mac);
 	// Use the area of the intersection of all circles as the error/certainty?
 		// Yes, but how to calculate?
-	double latitude = 0.0;
-	double longitude = 0.0;
-	unsigned int size = scans.size();
-	unsigned int valid = 0;
-	/*
-	if (true) {
-		printf("----------------------------------\n");
-		for (unsigned int x = 0; x < scans.size(); x++) {
-			Circle z = scans.at(x);
-			printf("(%f,%f,%f)\n", z.center.latitude, z.center.longitude, z.radius);
-		}
-		printf("----------------------------------\n");
-	}
-	*/
-	for (unsigned int i = 0; i < (size-1); i++) {
-		Circle a = scans.at(i);
-		for (unsigned int j = i+1; j < size; j++) {
-			Circle b = scans.at(j);
-			if (!a.does_intersect(b)) {
-				continue;
-			}
-			//printf("Circles: (%f,%f,%f) (%f,%f,%f)\n", a.center.latitude, a.center.longitude, a.radius, b.center.latitude, b.center.longitude, b.radius);
-			// The circles are guarenteed to intersect.
-			valid += 1;
-			// There's really no reason I should return the pairs of points, 
-			// I'm going to end up averaging them anyway...
-			std::pair<Point,Point> points = a.intersects(b);
-			Point alpha = points.first;
-			Point beta = points.second;
-			//printf("alpha: %f, %f\n", alpha.latitude, alpha.longitude);
-			//printf("beta: %f, %f\n", beta.latitude, beta.longitude);
-			double tlat = (alpha.latitude+beta.latitude)/2.0;
-			double tlng = (alpha.longitude+beta.longitude)/2.0;
-			//printf("%f,%f,0\n", tlat, tlng);
-			// something to do with NaN rules?
-			latitude += tlat;
-			longitude += tlng;
-		}
-	}
-	// Average them out, considering there are twice the number of latitudes than the size.
-	// This is cause there's two points.
-	//fprintf(stderr, "[Locator]: Using %d valid intersections between %d scans.\n", valid, size);
-	if (valid == 0) {
-		fprintf(stderr, "[Locator]: Not enough valid data points!\n");
-		return pos;
-	}
-	printf("Valid intersections: %d\n", valid);
-
-	double est_lat = latitude / valid;
-	double est_lng = longitude / valid;
-
-	// Check.
-	if (Point::is_valid(est_lat, est_lng)) {
-		printf("[Locator]: MAC %s is near: %f, %f\n", mac.c_str(), est_lat, est_lng);
-		pos = std::make_pair(est_lat, est_lng);
-	} else {
-		fprintf(stderr, "[Locator]: latitude/longitude position IS INVALID!!!\n");
-		fprintf(stderr, "Latitude: %f\n\nLongitude: %f\n\n", latitude, longitude);
-		//return -1;
+	
+	for (unsigned int x = 0; x < scans.size(); x++) {
+		Circle c = scans.at(x);
+		std::ostringstream temp;
+		temp << x;
+		std::string name = temp.str();
+		temp.str(""); temp.clear();
+		temp << "radius: " << c.radius;
+		std::string desc = temp.str();
+		kml.draw_circle(name, desc, c.center.latitude, c.center.longitude, c.radius);
 	}
 	
+	
+	// For every pair of circles...
+	std::vector< std::pair<Point,Point> > vertex_pairs;
+	for (unsigned int i = 0; i < (scans.size()-1); i++) {
+		Circle a = scans.at(i);
+		for (unsigned int j = i+1; j < scans.size(); j++) {
+			Circle b = scans.at(j);
+			if (!a.does_intersect(b)) continue;
+			// The circles intersect.
+			vertex_pairs.push_back(a.intersects(b));
+		}
+	}
+	
+	// For every pair of verticies...
+		// Keep the vertex that's within more circles than the other.
+	std::vector<Point> polygon;
+	for (unsigned int i = 0; i < vertex_pairs.size(); i++) {
+		Point alpha = vertex_pairs.at(i).first;
+		Point beta = vertex_pairs.at(i).second;
+		unsigned int alpha_count = 0;
+		unsigned int beta_count = 0;
+		for (unsigned int j = 0; j < scans.size(); j++) {
+			if (scans.at(j).contains(alpha))
+				alpha_count += 1;
+			if (scans.at(j).contains(beta))
+				beta_count += 1;
+		}
+		if (alpha_count > beta_count)
+			polygon.push_back(alpha);
+		else
+			polygon.push_back(beta);
+	}
+	
+	// Return the average intersection of all the polygon's points.
+	double latitude = 0.0;
+	double longitude = 0.0;
+	for (unsigned int i = 0; i < polygon.size(); i++) {
+		//printf("%lf, %lf\n", polygon.at(i).longitude, polygon.at(i).latitude);
+		latitude += polygon.at(i).latitude;
+		longitude += polygon.at(i).longitude;
+	}
+	latitude /= polygon.size();
+	longitude /= polygon.size();
+	pos = std::make_pair(latitude, longitude);
 	return pos;
 }
-
-// Trilateration will consist of averaging all of the intersecting points for a given MAC.
-// In reality, I might be able to remove half of the points by only considering the
-// midpoint between the two circles (which should result in the same result???)
-
-// TODO: I don't need to locate every mac, every iteration
-// Only run locator on macs that the scan found (ie, new data points).
-
-
-
 
 
 

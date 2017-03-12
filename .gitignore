@@ -5,4 +5,4 @@
 *.db
 *.exe
 *.sqlite3
-
+*.kml

@@ -11,8 +11,8 @@ int main(int argc, char** argv) {
 		
 	Locator l;
 	l.open(filepath);
-	l.write_kml();
-	//l.trilaterate(std::string(mac_addr));
+	//l.write_kml();
+	l.trilaterate("30:46:9A:8D:6B:08");
 	l.close();
 	return 0;
 }

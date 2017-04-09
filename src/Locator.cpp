@@ -13,6 +13,7 @@
 
 #include <string>
 #include <algorithm>
+#include "KmlDrawer.cpp";
 
 #define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
@@ -60,7 +61,7 @@ double fspl_distance(double decibels, double gigahertz) {
 }
 
 
-
+/*
 class KmlDrawer {
 	private:
 		std::ofstream kml;
@@ -73,7 +74,7 @@ class KmlDrawer {
 };
 
 void KmlDrawer::close() {
-	kml << "</Document>\n</kml>"; 
+	kml << "</Document>\n</kml>";
 	kml.close();
 }
 
@@ -94,7 +95,7 @@ void KmlDrawer::draw_circle(std::string name, std::string desc, double latitude,
 	kml << "<Polygon>\n<outerBoundaryIs>\n<LinearRing>\n<coordinates>\n";
 	double lat1 = deg2rad(latitude);
 	double long1 = deg2rad(longitude);
-	double d_rad = radius/6378137;	
+	double d_rad = radius/6378137;
 	for (int i = 0; i <= 360; i+=3) {
 		double radial = deg2rad(i);
 		double lat_rad = asin(sin(lat1)*cos(d_rad) + cos(lat1)*sin(d_rad)*cos(radial));
@@ -117,7 +118,7 @@ void KmlDrawer::draw_point(std::string name, std::string desc, double latitude, 
 void KmlDrawer::style() {
 	kml << "<Style id=\"style0\"><PolyStyle><fill>0</fill><outline>1</outline></PolyStyle><LineStyle><color>ff0000ff</color><width>1</width></LineStyle></Style>\n";
 }
-
+*/
 
 
 
@@ -128,7 +129,7 @@ void KmlDrawer::style() {
 // http://math.stackexchange.com/questions/221881/the-intersection-of-n-disks-circles
 
 // A class for a 2-Dimensional point on Earth surface. A coordinate position.
-class Point {	
+class Point {
 	public:
 		Point(double lat, double lng) : latitude(lat), longitude(lng) {}
 		
@@ -157,8 +158,9 @@ class Circle {
 	public:
 		Point center;
 		double radius; // meters
+		double weight; // rssi (quality)
 	public:
-		Circle(double lat, double lng, double rad)
+		Circle(double lat, double lng, double rad, double weight)
 		: center(lat,lng), radius(rad) {}
 		
 		bool does_intersect(const Circle& other) {
@@ -233,6 +235,7 @@ class Locator {
 		void close();
 		void write_kml();
 		void write_meta();
+		void trilaterate_all();
 };
 
 int Locator::open(const char* fname) {
@@ -249,11 +252,11 @@ int Locator::open(const char* fname) {
 
 void Locator::close() {
 	sqlite3_close(db);
-	kml.close();
+	//kml.close();
 	fprintf(stdout, "[Locator]: Closing database file <%s>\n", filename);
 }
 
-void Locator::write_kml() {	
+void Locator::write_kml() {
 	std::string select_routers = "SELECT * FROM routers;";
 	std::vector<std::string> routers;
 	rv = sqlite3_exec(db, select_routers.c_str(), serialize, &routers, &errmsg);
@@ -263,7 +266,7 @@ void Locator::write_kml() {
 		std::string ssid = data.at(1);
 		std::string freq = data.at(2);
 		std::string channel = data.at(3);
-		std::pair<double,double> pos = trilaterate(mac);	
+		std::pair<double,double> pos = trilaterate(mac);
 		// draw point
 	}
 }
@@ -271,15 +274,16 @@ void Locator::write_kml() {
 
 
 // Enum format for the row that I'm returning.
-enum {id, lat, lng, dbm, freq};
+enum {id, lat, lng, dbm, freq, rssi};
 static int cb_scans(void* io, int argc, char** argv, char** col_name) {
 	std::vector<Circle>* scans = (std::vector<Circle>*)io;
 	double latitude = atof(argv[lat]);
 	double longitude = atof(argv[lng]);
 	double frequency = atof(argv[freq]);
 	double decibels = atof(argv[dbm]);
+	double quality = atof(argv[rssi]);
 	//
-	Circle scan(latitude, longitude, fspl_distance(decibels, frequency));
+	Circle scan(latitude, longitude, fspl_distance(decibels, frequency), quality);
 	scans->push_back(scan);
 	return 0;
 }
@@ -287,7 +291,7 @@ static int cb_scans(void* io, int argc, char** argv, char** col_name) {
 
 std::vector<Circle> Locator::get_scans(std::string mac) {
 	std::vector<Circle> result;
-	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, data.signal, routers.frequency FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
+	std::string select_data = "SELECT scans.id, scans.latitude, scans.longitude, data.signal, routers.frequency, data.quality FROM scans, data, routers WHERE scans.id = data.scan_id AND routers.mac = data.mac AND data.mac = '" + mac + "';";
 	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &result, &errmsg);
 	if (rv != SQLITE_OK) {
 		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
@@ -304,9 +308,10 @@ std::vector<Circle> Locator::get_scans(std::string mac) {
 std::pair<double,double> Locator::trilaterate(std::string mac) {
 	printf("[Locator]: Using MAC address: %s\n", mac.c_str());
 	
+	// Open the KML file to write to.
 	std::string macname = std::string(mac);
 	std::replace(macname.begin(), macname.end(), ':', '-');
-	std::string kmlname  = macname + ".kml";
+	std::string kmlname = macname + ".kml";
 	kml.open(kmlname.c_str());
 
 	
@@ -370,11 +375,24 @@ std::pair<double,double> Locator::trilaterate(std::string mac) {
 	latitude /= polygon.size();
 	longitude /= polygon.size();
 	pos = std::make_pair(latitude, longitude);
+	
+	
+	kml.close();
+	
+	
 	return pos;
 }
 
-
-
-
-
+void Locator::trilaterate_all() {
+    /*
+    std::vector<std::string> macs;
+    std::string select_data = "SELECT routers.mac FROM routers;";
+	rv = sqlite3_exec(db, select_data.c_str(), cb_scans, &result, &errmsg);
+	if (rv != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_exec(): %s\n", errmsg);
+		fprintf(stderr, "query: %s\n", select_data.c_str());
+		sqlite3_free(errmsg);
+	}
+    */
+}
 

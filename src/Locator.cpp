@@ -377,9 +377,9 @@ std::pair<double,double> Locator::trilaterate(std::string mac) {
 	pos = std::make_pair(latitude, longitude);
 	
 	
+	
+	kml.draw_point(mac, "trilateration point", latitude, longitude);
 	kml.close();
-	
-	
 	return pos;
 }
 

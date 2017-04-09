@@ -1,6 +1,6 @@
 CFLAGS=-Wall
 
-all: scan
+all: scan locate
 
 scan: scan.cpp
 	g++ $(CFLAGS) -o scan.o scan.cpp -lgps -liw -lsqlite3

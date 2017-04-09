@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
 	Locator l;
 	l.open(filepath);
 	//l.write_kml();
-	l.trilaterate("30:46:9A:8D:6B:08");
+	//l.trilaterate("A0:63:91:87:A0:37");
+	l.trilaterate("10:DA:43:8C:25:B5");
 	l.close();
 	return 0;
 }

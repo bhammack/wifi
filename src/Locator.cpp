@@ -11,6 +11,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <string>
+#include <algorithm>
+
 #define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
 #define NO_WRITE 1
@@ -240,7 +243,7 @@ int Locator::open(const char* fname) {
 		return 1;
 	}
 	fprintf(stdout, "[Locator]: Opening database file <%s>\n", filename);
-	kml.open("newoutput.kml");
+	//kml.open("newoutput.kml");
 	return 0;
 };
 
@@ -300,6 +303,13 @@ std::vector<Circle> Locator::get_scans(std::string mac) {
 // This here is what makes the whole project chooch. TRILATERATION.
 std::pair<double,double> Locator::trilaterate(std::string mac) {
 	printf("[Locator]: Using MAC address: %s\n", mac.c_str());
+	
+	std::string macname = std::string(mac);
+	std::replace(macname.begin(), macname.end(), ':', '-');
+	std::string kmlname  = macname + ".kml";
+	kml.open(kmlname.c_str());
+
+	
 	std::pair<double,double> pos = std::make_pair(0.0,0.0);
 	std::vector<Circle> scans = get_scans(mac);
 	// Use the area of the intersection of all circles as the error/certainty?

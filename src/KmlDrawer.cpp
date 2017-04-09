@@ -3,6 +3,10 @@
 #include <fstream>
 
 #include <cmath>
+#define PI 3.14159265358979323846
+
+double deg2rad(double deg) { return (deg * PI / 180); };
+double rad2deg(double rad) { return (rad * 180 / PI); };
 
 
 class KmlDrawer {

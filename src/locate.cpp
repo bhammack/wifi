@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 		printf("Trilaterating all points! This make take a while...\n");
 		l.trilaterate_all();
 	} else {
-		l.trilaterate(std::string(mac, true));
+		l.trilaterate(std::string(mac), true);
 	}
 	//l.write_kml();
 	//l.trilaterate("A0:63:91:87:A0:37"); // free virus

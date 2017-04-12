@@ -295,15 +295,13 @@ std::pair<double,double> Locator::trilaterate(std::string mac, bool draw_scans =
 	
 	
 	double latitude = 0.0;
-	double quals = 0;
 	double longitude = 0.0;
 	double radius = 0;
-	int radius_count = 0;
-	
+	double rssi_total = 0.0;
 	int valid_intersections = 0;
 	
 	// For every pair of circles (that intersect)...
-	std::vector< std::pair<Point,Point> > vertex_pairs;
+	std::vector< std::pair<Point,double> > vertex_pairs;
 	for (unsigned int i = 0; i < (scans.size()-1); i++) {
 		Circle a = scans.at(i);
 		for (unsigned int j = i+1; j < scans.size(); j++) {
@@ -312,24 +310,34 @@ std::pair<double,double> Locator::trilaterate(std::string mac, bool draw_scans =
 			// The circles intersect.
 			valid_intersections++;
 			
-			//std::pair<Point,Point> intersection = a.intersects(b);
-			quals += a.weight + b.weight;
-			latitude += (a.weight*a.center.latitude) + (b.weight*b.center.latitude);
-			longitude += (a.weight*a.center.longitude) + (b.weight*b.center.longitude);
-			radius += (a.radius + b.radius);
-			radius_count += 2;
+			std::pair<Point,Point> points = a.intersects(b);
+			double rssi = a.weight;
+			if (b.weight > a.weight) {
+				rssi = b.weight;
+			}
 			
-			
-			
-			
-			
-			//vertex_pairs.push_back(a.intersects(b));
+			vertex_pairs.push_back(std::make_pair(points.first, rssi));
+			vertex_pairs.push_back(std::make_pair(points.second, rssi));
 		}
+	}
+	
+	printf("[Locator]: Analyzing %d points...\n", vertex_pairs.size());
+	for (unsigned int i = 0; i < vertex_pairs.size(); i++) {
+		std::pair<Point, double> tuple = vertex_pairs.at(i);
+		double rssi = tuple.second;
+		Point p = tuple.first;
+		//printf("Latitude: %lf\tLongitude: %lf\tQuality: %lf\n", p.latitude, p.longitude, rssi);
+		
+		latitude += p.latitude*rssi;
+		longitude += p.longitude*rssi;
+		rssi_total += rssi;
 	}
 	
 	
 	/*
-	
+	//////////////////////////////////////////////
+	//     Iteration I code. Kept for history
+	////////////////////////////////////////////////
 	// For every pair of verticies...
 		// Keep the vertex that's within more circles than the other.
 	std::vector<Point> polygon;
@@ -363,9 +371,9 @@ std::pair<double,double> Locator::trilaterate(std::string mac, bool draw_scans =
 	pos = std::make_pair(latitude, longitude);
 	*/
 	
-	latitude /= quals;
-	longitude /= quals;
-	radius /= radius_count;
+	latitude /= rssi_total;
+	longitude /= rssi_total;
+	//radius /= radius_count;
 	
 	printf("mac: %s is near %lf, %lf, radius of %lf\n", mac.c_str(), latitude, longitude, radius);
 	kml.draw_point(mac, "trilateration point", latitude, longitude);
